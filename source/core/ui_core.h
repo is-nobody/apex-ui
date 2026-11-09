@@ -44,6 +44,9 @@ void  apexui_fire_click_b(UiContext* ctx, Widget* w, int button);
 void ui_tick(UiContext* ctx, double dt);
 bool ui_animating(UiContext* ctx);
 
+// soft keyboard sync
+void ui_ime_sync(UiContext* ctx);
+
 // message loop
 bool apexui_pump(UiContext* ctx);
 

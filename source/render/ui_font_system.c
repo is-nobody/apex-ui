@@ -8,7 +8,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifdef __linux__
+#ifdef __ANDROID__
+#elif defined(__linux__)
 #  include <fontconfig/fontconfig.h>
 #elif defined(_WIN32)
 #  include <windows.h>
@@ -35,7 +36,26 @@ static uint8_t* read_file(const char* path, size_t* out_len) {
     return buf;                                  // caller owns the buffer
 }
 
-#ifdef __linux__
+#if defined(__ANDROID__)
+
+// android has no fontconfig; the system ships ttf files under /system/fonts
+static char* system_font_path_android(void) {
+    static const char* const candidates[] = {
+        "/system/fonts/Roboto-Regular.ttf",         // stock sans since 4.0
+        "/system/fonts/RobotoCondensed-Regular.ttf",
+        "/system/fonts/NotoSans-Regular.ttf",       // some vendor builds
+        "/system/fonts/DroidSans.ttf",              // pre-4.0 devices
+    };
+    for (size_t i = 0; i < sizeof(candidates) / sizeof(candidates[0]); i++) {
+        FILE* f = fopen(candidates[i], "rb");       // readable? then it exists
+        if (!f) continue;
+        fclose(f);
+        return strdup(candidates[i]);
+    }
+    return NULL;                                    // no system font found
+}
+
+#elif defined(__linux__)
 
 // resolves the path of the system sans-serif font via fontconfig
 static char* system_font_path_linux(void) {
@@ -124,7 +144,9 @@ static char* system_font_path_macos(void) {
 UiFont* ui_font_load_system(void) {
     char* path = NULL;                                       // resolved font file path
 
-#if defined(__linux__)
+#if defined(__ANDROID__)
+    path = system_font_path_android();                       // /system/fonts lookup
+#elif defined(__linux__)
     path = system_font_path_linux();                         // fontconfig lookup
 #elif defined(_WIN32)
     path = system_font_path_windows();                       // windows fonts directory lookup

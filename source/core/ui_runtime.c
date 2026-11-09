@@ -81,10 +81,16 @@ void rebuild_and_draw(UiContext* ctx) {
     int top       = ctx->custom_chrome ? UI_TITLEBAR_H : 0;       // titlebar reserved at the top
     int mb_h      = ui_menubar_height(ctx);                       // menu bar reserved below it
     int content_t = top + mb_h;                                   // top edge of the widget tree
-    ctx->root->x = 0;
-    ctx->root->y = (float)content_t;
-    ctx->root->w = (float)ctx->win_w;
-    ctx->root->h = (float)(ctx->win_h - content_t);
+
+    int pad = 0;
+#ifdef __ANDROID__
+    pad = UI_PAD_SCREEN;                                          // physical screen margins
+#endif
+
+    ctx->root->x = (float)pad;
+    ctx->root->y = (float)(content_t + pad);
+    ctx->root->w = (float)(ctx->win_w - pad * 2);
+    ctx->root->h = (float)(ctx->win_h - content_t - pad * 2);
     if (ctx->geometry_dirty) {                                    // skip when nothing moved
         ui_layout(ctx);                                           // compute widget geometry
         ctx->geometry_dirty = false;
@@ -168,10 +174,16 @@ void redraw_only(UiContext* ctx) {
     int top       = ctx->custom_chrome ? UI_TITLEBAR_H : 0;       // titlebar reserved at the top
     int mb_h      = ui_menubar_height(ctx);                       // menu bar reserved below it
     int content_t = top + mb_h;                                   // top edge of the widget tree
-    ctx->root->x = 0;
-    ctx->root->y = (float)content_t;
-    ctx->root->w = (float)ctx->win_w;
-    ctx->root->h = (float)(ctx->win_h - content_t);
+
+    int pad = 0;
+#ifdef __ANDROID__
+    pad = UI_PAD_SCREEN;
+#endif
+
+    ctx->root->x = (float)pad;
+    ctx->root->y = (float)(content_t + pad);
+    ctx->root->w = (float)(ctx->win_w - pad * 2);
+    ctx->root->h = (float)(ctx->win_h - content_t - pad * 2);
 
     if (ctx->geometry_dirty) {                                    // skip when nothing moved
         ui_layout(ctx);                                           // recompute geometry
@@ -247,7 +259,37 @@ bool apexui_pump(UiContext* ctx) {
         ctx->pending_resize = false;
     }
 
+    ui_ime_sync(ctx);                                             // track soft keyboard focus
+
     return ctx->queue.count > 0;                                  // true if anything was queued
+}
+
+// shows the platform soft keyboard and keeps it in sync with the focused editor
+void ui_ime_sync(UiContext* ctx) {
+    static uint64_t s_last_focus = 0;                             // focus id we synced for
+    static bool     s_have_focus = false;                         // false before the first sync
+    bool focus_changed = (!s_have_focus || ctx->focused_id != s_last_focus);
+    s_last_focus = ctx->focused_id;
+    s_have_focus = true;
+
+    Widget* w = NULL;                                             // focused widget, if any
+    for (int i = 0; i < ctx->pool_used; i++) {
+        if (ctx->pool[i].id == ctx->focused_id) { w = &ctx->pool[i]; break; }
+    }
+    bool is_text = w && (w->kind == WK_INPUT || w->kind == WK_NUMBER_INPUT ||
+                         w->kind == WK_TEXT_AREA);
+
+    (void)focus_changed;
+    ui_window_ime_show(ctx->window, is_text);
+
+    if (!is_text) return;                                         // nothing to sync
+    WidgetState* s = ui_state_get(ctx, w->id);
+    int cur = s->cursor     < 0 ? w->input_value.len : s->cursor;
+    int anc = s->sel_anchor < 0 ? cur                 : s->sel_anchor;
+    if (cur > w->input_value.len) cur = w->input_value.len;
+    if (anc > w->input_value.len) anc = w->input_value.len;
+    ui_window_ime_sync(ctx->window, w->input_value.ptr, w->input_value.len,
+                       cur, anc, w->kind == WK_TEXT_AREA);
 }
 
 // builtin: creates the native window if not already open
@@ -267,6 +309,9 @@ Value apexui_impl_init(UiContext* ctx, int argc, Value* argv) {
         min_h = (int)ui_table_get_num(ctx, t, "min_height", UI_MIN_H);  // minimum height
     }
     const char* use_title = title ? title : "Apex UI";            // fall back to default title
+    #ifdef __ANDROID__
+        chrome = false;
+    #endif
     ctx->custom_chrome = chrome;                                  // remember for the render pass
     ctx->tb_hot = ctx->tb_active = 0;                             // clear button state
     strncpy(ctx->title, use_title, sizeof(ctx->title) - 1);       // mirror the title

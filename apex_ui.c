@@ -792,12 +792,15 @@ static ApexuiNode* node_dropdown(UiContext* c, const char* selected,
     Value sv = str_or_none(selected);
     Value ov = opts_to_table(opts);
     Value d = make_leaf("dropdown", sv, ov);
-    uival_value_decref(sv);
-    uival_value_decref(ov);
-    if (!IS_TABLE(d)) return NULL;
+    if (!IS_TABLE(d)) {                       // allocation failed
+        uival_value_decref(sv);
+        uival_value_decref(ov);
+        return NULL;
+    }
+    kset(AS_TABLE(d), "value", sv);           // the widget draws its box text from "value"
     if (items && n > 0) {
         Table* arr = uival_table_create(n > 64 ? 64 : (int)n);
-        if (!arr) { uival_value_decref(d); return NULL; }
+        if (!arr) { uival_value_decref(d); uival_value_decref(sv); uival_value_decref(ov); return NULL; }
         int m = 0;
         for (size_t i = 0; i < n; i++) {
             if (!items[i]) continue;                // null items are skipped
@@ -810,6 +813,8 @@ static ApexuiNode* node_dropdown(UiContext* c, const char* selected,
         kset(AS_TABLE(d), "options", av);
         uival_value_decref(av);
     }
+    uival_value_decref(sv);
+    uival_value_decref(ov);
     return node_track(c, d);
 }
 

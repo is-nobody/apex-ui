@@ -606,4 +606,16 @@ bool ui_window_is_fullscreen(UiWindow* w) {
     return w && w->fullscreen;
 }
 
+// no-op on x11: hardware keyboards provide the text input
+void ui_window_ime_show(UiWindow* w, bool show) {
+    (void)w; (void)show;
+}
+
+// no-op on win32: hardware keyboards provide the text input
+void ui_window_ime_sync(UiWindow* w, const char* text, int text_len,
+                        int cursor_byte, int sel_byte, bool multiline) {
+    (void)w; (void)text; (void)text_len;
+    (void)cursor_byte; (void)sel_byte; (void)multiline;
+}
+
 #endif

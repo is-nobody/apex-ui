@@ -42,6 +42,15 @@ elseif(APPLE)
         "-framework CoreGraphics"
         "-framework CoreText"
         "-framework CoreFoundation")
+elseif(ANDROID)
+    # android backend: native activity glue + software surface
+    list(APPEND APEXUI_WINDOW_SOURCES
+        source/platform/android/ui_window_android.c
+        source/platform/android/ui_window_android_event.c
+        source/platform/android/ui_window_android_clipboard.c
+        source/platform/android/ui_window_android_filedialog.c
+        source/platform/android/ui_window_android_jni.c)
+    list(APPEND APEXUI_PLATFORM_LIBS log android)
 else()
     list(APPEND APEXUI_WINDOW_SOURCES
         source/platform/linux/ui_window_linux.c
@@ -124,6 +133,7 @@ target_include_directories(apexui
         ${CMAKE_CURRENT_SOURCE_DIR}/source/platform/linux
         ${CMAKE_CURRENT_SOURCE_DIR}/source/platform/windows
         ${CMAKE_CURRENT_SOURCE_DIR}/source/platform/macos
+        ${CMAKE_CURRENT_SOURCE_DIR}/source/platform/android
 )
 
 # baseline warnings and posix compatibility

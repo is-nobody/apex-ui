@@ -8,12 +8,12 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Apex Version](https://img.shields.io/badge/Apex_UI-26.11-blue)](https://github.com/is-nobody/apex-lang)
-![Available](https://img.shields.io/badge/Available-Windows%20%7C%20macOS%20%7C%20Linux-red)
+![Available](https://img.shields.io/badge/Available-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Android-red)
 
 This is the official repository for [Apex UI](https://github.com/is-nobody/apex-ui).
 
 ## Why Apex UI?
-- **One API, three platforms:** Win32, Cocoa and X11 are fully abstracted behind `ui_window.h`; the widget layer above only sees a framebuffer.
+- **One API, four platforms:** Win32, Cocoa, X11 and Android are fully abstracted behind `ui_window.h`; the widget layer above only sees a framebuffer.
 
 - **Damage tracking:** A per-frame widget snapshot diffs against the previous frame; repaints only touch the rects that actually changed.
 
@@ -37,7 +37,7 @@ cmake --build build/ --parallel
 
 On Linux the build needs `libx11-dev`, `libxext-dev` and
 `libfontconfig-dev`. macOS uses the system frameworks, Windows uses the
-standard SDK — nothing to install.
+standard SDK — nothing to install. Android builds through the NDK.
 
 ### Install
 ```bash
@@ -75,6 +75,10 @@ int main() {
     return 0;
 }
 ```
+
+The same `main()` runs on Android as-is: `ui.open()` adopts the screen
+size instead of asking for one, and the backend feeds touch input and the
+system clipboard through the same event queue.
 
 For a batched message loop with a host callback, use `apexui_run` — the
 callback receives each event table and returns the widget tree to render

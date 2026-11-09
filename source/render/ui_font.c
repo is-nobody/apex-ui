@@ -363,15 +363,19 @@ static void poly_push(Poly* p, float x, float y) {
     p->pts[p->n].x = x; p->pts[p->n].y = y; p->n++;
 }
 
-// rasterizes a set of polygons into a coverage bitmap using 4x vertical supersampling
+typedef struct { float x; int dir; } Crossing;
+
+// rasterizes a set of polygons into a coverage bitmap using 16x vertical supersampling
 static void raster_polys(Poly* polys, int npolys,
                          int W, int H, int ox, int oy, uint8_t* out) {
     memset(out, 0, (size_t)W * H);                       // start with an empty coverage map
-    const int SS = 4;                                    // 4 sub-scanlines per pixel row
+    const int SS = 16;                                   // higher sub-scanline count for smooth AA
+    static int cap = 0; 
+    static Crossing* xs = NULL;                          // reused crossings buffer
+
     for (int y = 0; y < H; y++) {
         for (int sy = 0; sy < SS; sy++) {
             float fy = y + (sy + 0.5f) / SS + oy;        // y of this sub-scanline in glyph space
-            static int cap = 0; static float* xs = NULL; // reused crossings buffer
             int nx = 0;                                  // number of crossings found
             for (int pi = 0; pi < npolys; pi++) {        // collect edges crossing this scanline
                 Poly* p = &polys[pi];
@@ -380,33 +384,49 @@ static void raster_polys(Poly* polys, int npolys,
                     if ((a.y <= fy && b.y > fy) || (b.y <= fy && a.y > fy)) {  // straddles the line
                         float t = (fy - a.y) / (b.y - a.y);    // parametric position along the edge
                         float x = a.x + t * (b.x - a.x);       // x of the crossing
-                        if (nx >= cap) { cap = cap ? cap * 2 : 64;
-                            xs = (float*)realloc(xs, sizeof(float)*cap); }
-                        xs[nx++] = x;
+                        int dir = (a.y <= fy && b.y > fy) ? 1 : -1; // winding direction
+                        if (nx >= cap) { 
+                            cap = cap ? cap * 2 : 64;
+                            xs = (Crossing*)realloc(xs, sizeof(Crossing)*cap); 
+                        }
+                        xs[nx].x = x;
+                        xs[nx].dir = dir;
+                        nx++;
                     }
                 }
             }
-            for (int i = 1; i < nx; i++) {               // insertion sort the crossings
-                float v = xs[i]; int j = i - 1;
-                while (j >= 0 && xs[j] > v) { xs[j+1] = xs[j]; j--; }
+            // insertion sort the crossings by x
+            for (int i = 1; i < nx; i++) {               
+                Crossing v = xs[i]; int j = i - 1;
+                while (j >= 0 && xs[j].x > v.x) { xs[j+1] = xs[j]; j--; }
                 xs[j+1] = v;
             }
-            for (int i = 0; i + 1 < nx; i += 2) {        // fill the even-odd spans
-                float xa = xs[i] - ox, xb = xs[i+1] - ox;  // span in output space
-                if (xb <= 0 || xa >= W) continue;        // fully outside the bitmap
-                if (xa < 0) xa = 0;                      // clamp to the left edge
-                if (xb > W) xb = W;                      // clamp to the right edge
-                int ia = (int)xa, ib = (int)xb;
-                for (int x = ia; x <= ib && x < W; x++) {
-                    float lo = (float)x, hi = lo + 1.0f; // pixel bounds
-                    float a = xa > lo ? xa : lo;         // covered span within the pixel
-                    float b = xb < hi ? xb : hi;
-                    if (b <= a) continue;                // no coverage
-                    int cov = (int)((b - a) * 255.0f / SS + 0.5f);  // coverage scaled by sub-scanlines
-                    if (cov > 0) {
-                        int cur = out[(size_t)y*W + x];  // accumulate across scanlines
-                        int nv = cur + cov; if (nv > 255) nv = 255;
-                        out[(size_t)y*W + x] = (uint8_t)nv;
+            
+            // Non-Zero Winding fill rule (fixes transparent holes in letters)
+            int winding = 0;
+            float span_start = 0;
+            for (int i = 0; i < nx; i++) {
+                int prev_winding = winding;
+                winding += xs[i].dir;
+                if (prev_winding == 0 && winding != 0) {
+                    span_start = xs[i].x;
+                } else if (prev_winding != 0 && winding == 0) {
+                    float xa = span_start - ox, xb = xs[i].x - ox;  // span in output space
+                    if (xb <= 0 || xa >= W) continue;        // fully outside the bitmap
+                    if (xa < 0) xa = 0;                      // clamp to the left edge
+                    if (xb > W) xb = W;                      // clamp to the right edge
+                    int ia = (int)xa, ib = (int)xb;
+                    for (int x = ia; x <= ib && x < W; x++) {
+                        float lo = (float)x, hi = lo + 1.0f; // pixel bounds
+                        float a = xa > lo ? xa : lo;         // covered span within the pixel
+                        float b = xb < hi ? xb : hi;
+                        if (b <= a) continue;                // no coverage
+                        int cov = (int)((b - a) * 255.0f / SS + 0.5f);  // coverage scaled by sub-scanlines
+                        if (cov > 0) {
+                            int cur = out[(size_t)y*W + x];  // accumulate across scanlines
+                            int nv = cur + cov; if (nv > 255) nv = 255;
+                            out[(size_t)y*W + x] = (uint8_t)nv;
+                        }
                     }
                 }
             }

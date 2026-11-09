@@ -29,9 +29,9 @@ typedef struct {
     int button;                                          // mouse button number for click events
     int mods;                                            // modifier bitmask for key events
     double scroll_dy;                                    // wheel delta for scroll events
-    char utf8[8];                                        // utf-8 text produced by the key, if any
+    char utf8[32];                                       // utf-8 text produced by the key, if any
     int  utf8_len;                                       // byte length of utf8 payload
-} UiWinEvent;                                            // a single native window event
+} UiWinEvent;
 
 // host hook invoked on repaint
 typedef void (*UiPaintCallback)(void* user, int w, int h);
@@ -128,6 +128,13 @@ void ui_window_toggle_fullscreen(UiWindow* w);
 
 // true when the window is currently fullscreen
 bool ui_window_is_fullscreen(UiWindow* w);
+
+// shows or hides the platform soft keyboard
+void ui_window_ime_show(UiWindow* w, bool show);
+
+// tells the platform soft keyboard what text the focused editor holds
+void ui_window_ime_sync(UiWindow* w, const char* text, int text_len,
+                        int cursor_byte, int sel_byte, bool multiline);
 
 // one filter row for the native open-file dialog
 typedef struct {

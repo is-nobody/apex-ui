@@ -20,8 +20,7 @@ static int draw_title_fitted(UiContext* ctx, int region_left, int region_right,
     if (full_w <= (float)avail) {                             // whole title fits
         float x = right_align ? (float)region_right - full_w
                               : (float)region_left;
-        ui_text_draw(ctx->font, ctx->pixels, ctx->win_w, ctx->win_h,
-                     x, baseline, ctx->title, tlen, fs, UI_C_TB_FG);
+        ui_draw_text_at(ctx, x, baseline, ctx->title, tlen, fs, UI_C_TB_FG);
         return (int)full_w;
     }
 
@@ -44,18 +43,15 @@ static int draw_title_fitted(UiContext* ctx, int region_left, int region_right,
     if (cut <= 0) {                                           // even one glyph doesn't fit: just "..."
         float x = right_align ? (float)region_right - ell_w
                               : (float)region_left;
-        ui_text_draw(ctx->font, ctx->pixels, ctx->win_w, ctx->win_h,
-                     x, baseline, ell, 3, fs, UI_C_TB_FG);
+        ui_draw_text_at(ctx, x, baseline, ell, 3, fs, UI_C_TB_FG);
         return (int)ell_w;
     }
 
     float total = cut_w + ell_w;                              // prefix + ellipsis
     float x = right_align ? (float)region_right - total
                           : (float)region_left;
-    ui_text_draw(ctx->font, ctx->pixels, ctx->win_w, ctx->win_h,
-                 x, baseline, ctx->title, cut, fs, UI_C_TB_FG);
-    ui_text_draw(ctx->font, ctx->pixels, ctx->win_w, ctx->win_h,
-                 x + cut_w, baseline, ell, 3, fs, UI_C_TB_FG);
+    ui_draw_text_at(ctx, x, baseline, ctx->title, cut, fs, UI_C_TB_FG);
+    ui_draw_text_at(ctx, x + cut_w, baseline, ell, 3, fs, UI_C_TB_FG);
     return (int)total;
 }
 
