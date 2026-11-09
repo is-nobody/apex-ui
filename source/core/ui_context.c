@@ -70,6 +70,7 @@ static void free_state_entry(WidgetState* s) {
 // tears down the ui context and releases every owned allocation
 void apexui_context_free(UiContext* ctx) {
     if (!ctx) return;                                             // null guard
+    ui_nodes_release_all(ctx);                                    // drop staged declarative-api nodes
     ui_widgets_reset(ctx);                                        // free all per-widget allocations
     ui_context_menu_free(ctx);                                    // release any open context menu
     ui_menubar_free(ctx);                                         // release the menu bar
@@ -88,8 +89,16 @@ void apexui_context_free(UiContext* ctx) {
     free(ctx->queue.events);                                      // free the event queue array
     if (ctx->font)   ui_font_free(ctx->font);                     // release the font
     if (ctx->window) ui_window_destroy(ctx->window);              // release the host window
+    if (ctx->has_tree && (ctx->last_tree & QNAN) == QNAN)
+        uival_value_decref(ctx->last_tree);                       // release the committed tree
     ctx->last_tree = MAKE_NONE();                                 // clear the cached tree
     ctx->has_tree = false;
+    free(ctx->node_list);                                         // free the staged-node pointer array
+    while (ctx->node_free) {                                      // free every parked node struct
+        struct ApexuiNode* n = ctx->node_free;
+        ctx->node_free = n->next_free;
+        free(n);
+    }
     hit_grid_free(ctx);                                           // release hit-test grid
     ui_painter_shutdown();                                        // release the corner atlas
     ui_damage_free(ctx);                                          // free ui damage

@@ -100,9 +100,9 @@ uint64_t ui_visual_hash(Widget* w) {
     fp ^= (uint64_t)(uintptr_t)w->input_value.ptr;
 
     if (fp == w->visual_hash_fp && w->visual_hash_cache != 0)
-        return w->visual_hash_cache;                                       // state unchanged
+        return w->visual_hash_cache;                                          // state unchanged
 
-    uint64_t h = 0xCBF29CE484222325ULL;                                    // fnv-1a offset basis
+    uint64_t h = 0xCBF29CE484222325ULL;                                       // fnv-1a offset basis
     h = ui_hash_bytes64(h, &w->kind,            sizeof(w->kind));             // widget kind
     h = ui_hash_bytes64(h, &w->visible,         sizeof(w->visible));          // visibility flag
     h = ui_hash_bytes64(h, &w->disabled,        sizeof(w->disabled));         // disabled flag
@@ -116,8 +116,8 @@ uint64_t ui_visual_hash(Widget* w) {
     h = ui_hash_bytes64(h, &w->blink_on,        sizeof(w->blink_on));         // input caret blink
     h = ui_hash_bytes64(h, &w->scroll_y,        sizeof(w->scroll_y));         // scroll offset
     h = ui_hash_bytes64(h, &w->content_h,       sizeof(w->content_h));        // scroll content height
-    h = ui_hash_bytes64(h, &w->drop_open,      sizeof(w->drop_open));       // dropdown expanded
-    h = ui_hash_bytes64(h, &w->drop_selected,  sizeof(w->drop_selected));   // selected option index
+    h = ui_hash_bytes64(h, &w->drop_open,      sizeof(w->drop_open));         // dropdown expanded
+    h = ui_hash_bytes64(h, &w->drop_selected,  sizeof(w->drop_selected));     // selected option index
     h = ui_hash_bytes64(h, &w->tab_hover_idx,   sizeof(w->tab_hover_idx));    // hovered tab
     h = ui_hash_bytes64(h, &w->tab_hover_close, sizeof(w->tab_hover_close));  // hover is on the hovered tab's close button
     h = ui_hash_bytes64(h, &w->tab_add_hover,   sizeof(w->tab_add_hover));    // "+" button hovered

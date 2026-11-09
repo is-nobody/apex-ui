@@ -44,24 +44,33 @@ standard SDK — nothing to install.
 cmake --install build/ --prefix /usr/local
 ```
 
-Installs `apex_ui.h` into `include/` and the library into `lib/`.
+Installs `apex_ui.h/hpp` into `include/` and the library into `lib/`.
 
 ### Minimal example
-```c
-#include "apex_ui.h"
+```cpp
+#include "apex_ui.hpp"
+#include <cstring>
 
-int main(void) {
+int main() {
     ApexUiContext* ctx = apexui_context_create();
-    apexui_init(ctx, apexui_make_none());
+    if (!ctx) return 1;
 
-    apexui_value root = apexui_make_table(1);
-    apexui_array_push(root, apexui_button("Click me", apexui_make_none()));
-    apexui_render(ctx, root);
+    apex::Ui ui(ctx);
+    if (!ui.open("Apex UI", 320, 200)) {
+        apexui_context_destroy(ctx);
+        return 1;
+    }
 
-    apexui_value ev;
-    while (apexui_is_table(ev = apexui_next_event(ctx)))
-        apexui_value_release(ev);
+    ui.render({ ui.button("Click me") });
 
+    bool running = true;
+    while (running)
+        apex::poll_events(ctx, [&](const apex::Event& ev) {
+            if (ev.type() && std::strcmp(ev.type(), "close") == 0)
+                running = false;
+        });
+
+    apexui_shutdown(ctx);
     apexui_context_destroy(ctx);
     return 0;
 }
@@ -77,7 +86,6 @@ format, the event model, and the platform backends.
 
 - **[Apex UI: Getting Started](resources/ui_Getting_Started.md)** — Best for newcomers, with a from-scratch walkthrough of `apex_ui.h`, the value runtime, and a first window.
 - **[Apex UI: Widget Reference](resources/ui_Widgets.md)** — Best as a lookup, covering every widget descriptor, its options, and the events it emits.
-- **[Apex UI: Platform Backends](resources/ui_Backends.md)** — Best for porters, covering the Win32, Cocoa and X11 window layers, the clipboard, and the file dialogs.
 
 ## Getting Help
 See [Issues](https://github.com/is-nobody/apex-ui/issues) for bug reports and feature requests.

@@ -4,12 +4,17 @@
 # MIT license
 
 cmake_minimum_required(VERSION 3.13)
-project(ApexUI VERSION 26.11 LANGUAGES C)
+project(ApexUI VERSION 26.11 LANGUAGES C CXX)
 
 # enables gnu extensions for posix functions and statement expressions
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
+
+# the c++ facade is c++17
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # options
 option(APEXUI_BUILD_SHARED "Build Apex UI as a shared library instead of static" OFF)
@@ -52,9 +57,10 @@ else()
         Fontconfig::Fontconfig)
 endif()
 
-# portable library sources (apex_ui.c is the public api implementation)
+# portable library sources (apex_ui.c / apex_ui.cpp are the public api)
 set(APEXUI_SOURCES
     apex_ui.c
+    apex_ui.cpp
 
     source/common/apexui_value.c
     source/common/ui_hash.c
@@ -174,7 +180,7 @@ install(TARGETS apexui
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(FILES apex_ui.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(FILES apex_ui.h apex_ui.hpp DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 #[[
 # static library

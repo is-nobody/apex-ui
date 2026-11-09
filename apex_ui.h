@@ -14,11 +14,6 @@
 extern "C" {
 #endif
 
-// library version
-#define APEXUI_VERSION_MAJOR 26
-#define APEXUI_VERSION_MINOR 11
-#define APEXUI_VERSION       "26.11"
-
 // nan-boxed value cell: none / bool / number / string / table
 typedef uint64_t apexui_value;
 
@@ -98,13 +93,16 @@ void apexui_context_destroy(ApexUiContext* ctx);
 // opens the native window
 apexui_value apexui_init(ApexUiContext* ctx, apexui_value opts);
 
+// value-free convenience for apexui_init
+bool apexui_open(ApexUiContext* ctx, const char* title, int width, int height);
+
 // closes the native window; the context stays usable for a new apexui_init
 void apexui_shutdown(ApexUiContext* ctx);
 
-// stages a widget descriptor tree (or an array of trees) for the next repaint
-void apexui_render(ApexUiContext* ctx, apexui_value tree);
+// value-level render
+void apexui_render_value(ApexUiContext* ctx, apexui_value tree);
 
-// blocks until the next event
+// blocks until the next event and returns it as a table
 apexui_value apexui_next_event(ApexUiContext* ctx);
 
 // host callback for apexui_run
@@ -148,39 +146,101 @@ void apexui_context_menu_close(ApexUiContext* ctx);
 // table of named key / modifier constants
 apexui_value apexui_key_constants(void);
 
-// leaf widgets; content/label are strings
-apexui_value apexui_text(const char* content, apexui_value opts);
-apexui_value apexui_heading(const char* content, apexui_value opts);
-apexui_value apexui_separator(apexui_value opts);
-apexui_value apexui_button(const char* label, apexui_value opts);
-apexui_value apexui_checkbox(const char* label, bool checked, apexui_value opts);
-apexui_value apexui_input(const char* value_text, apexui_value opts);
-apexui_value apexui_number_input(double value, apexui_value opts);
-apexui_value apexui_text_area(const char* value_text, apexui_value opts);
-apexui_value apexui_dropdown(const char* selected, apexui_value options, apexui_value opts);
-
-// data widgets; columns / rows / nodes / tabs are descriptor tables or arrays
-apexui_value apexui_table_widget(apexui_value columns, apexui_value rows, apexui_value opts);
-apexui_value apexui_tree(apexui_value nodes, apexui_value opts);
-apexui_value apexui_tabs(apexui_value tabs, apexui_value opts);
-
-// spacers: fixed pixel gap or flexible weighted gap
-apexui_value apexui_spacer_fixed(double pixels);
-apexui_value apexui_spacer_flex(double weight);
-
-// containers; children is an array of widget descriptors
-apexui_value apexui_vbox(apexui_value children, apexui_value opts);
-apexui_value apexui_hbox(apexui_value children, apexui_value opts);
-apexui_value apexui_panel(apexui_value children, apexui_value opts);
-apexui_value apexui_vscroll(apexui_value children, apexui_value opts);
-apexui_value apexui_hscroll(apexui_value children, apexui_value opts);
-
-// bottom status bar; opts may contain an items array of {text} descriptors
-apexui_value apexui_statusbar(apexui_value opts);
-
-// name-based dispatcher
+// name-based dispatcher over the value layer ("ui.button", "ui.init", ...)
 bool apexui_call(ApexUiContext* ctx, const char* name,
                  int argc, const apexui_value* args, apexui_value* result);
+
+// widget options for the node constructors
+typedef struct {
+    const char* id;         // stable widget identity, reported back by events
+    const char* css_class;  // styling tag; stored on the descriptor for hosts
+    double      width;      // explicit pixel width, 0 = auto
+    double      height;     // explicit pixel height, 0 = auto
+    bool        disabled;   // greyed out and input-ignoring
+    bool        checked;    // initial checkbox state
+} ApexuiOpts;
+
+// opaque, context-owned widget handle (see the ownership model up top)
+typedef struct ApexuiNode ApexuiNode;
+
+// a push button with a text label
+ApexuiNode* apexui_button(ApexUiContext* ctx, const char* label);
+ApexuiNode* apexui_button_ex(ApexUiContext* ctx, const char* label, ApexuiOpts opts);
+
+// a line of body text
+ApexuiNode* apexui_label(ApexUiContext* ctx, const char* text);
+ApexuiNode* apexui_label_ex(ApexUiContext* ctx, const char* text, ApexuiOpts opts);
+
+// a line of heading text (larger font)
+ApexuiNode* apexui_heading(ApexUiContext* ctx, const char* text);
+ApexuiNode* apexui_heading_ex(ApexUiContext* ctx, const char* text, ApexuiOpts opts);
+
+// a horizontal rule
+ApexuiNode* apexui_separator(ApexUiContext* ctx);
+ApexuiNode* apexui_separator_ex(ApexUiContext* ctx, ApexuiOpts opts);
+
+// an empty flexible gap; opts.width / opts.height make it a fixed-size gap
+ApexuiNode* apexui_spacer(ApexUiContext* ctx);
+ApexuiNode* apexui_spacer_ex(ApexUiContext* ctx, ApexuiOpts opts);
+
+// a checkbox with a text label; opts.checked sets the initial state
+ApexuiNode* apexui_checkbox(ApexUiContext* ctx, const char* label);
+ApexuiNode* apexui_checkbox_ex(ApexUiContext* ctx, const char* label, ApexuiOpts opts);
+
+// a single-line text input; text is the initial content
+ApexuiNode* apexui_input(ApexUiContext* ctx, const char* text);
+ApexuiNode* apexui_input_ex(ApexUiContext* ctx, const char* text, ApexuiOpts opts);
+
+// a dropdown ("select") showing `selected`; items is an array of n labels
+ApexuiNode* apexui_dropdown(ApexUiContext* ctx, const char* selected,
+                            const char* const* items, size_t n);
+ApexuiNode* apexui_dropdown_ex(ApexUiContext* ctx, const char* selected,
+                               const char* const* items, size_t n, ApexuiOpts opts);
+
+// vertical stack of children
+ApexuiNode* apexui_column(ApexUiContext* ctx, ApexuiNode* const* kids, size_t n);
+ApexuiNode* apexui_column_ex(ApexUiContext* ctx, ApexuiNode* const* kids,
+                             size_t n, ApexuiOpts opts);
+
+// horizontal row of children
+ApexuiNode* apexui_row(ApexUiContext* ctx, ApexuiNode* const* kids, size_t n);
+ApexuiNode* apexui_row_ex(ApexUiContext* ctx, ApexuiNode* const* kids,
+                          size_t n, ApexuiOpts opts);
+
+// grid laying the children out row-major into `cols` equal-weight columns
+ApexuiNode* apexui_grid(ApexUiContext* ctx, int cols, ApexuiNode* const* kids, size_t n);
+ApexuiNode* apexui_grid_ex(ApexUiContext* ctx, int cols, ApexuiNode* const* kids,
+                           size_t n, ApexuiOpts opts);
+
+// atomically commits a new tree from the root nodes
+void apexui_render(ApexUiContext* ctx, ApexuiNode* const* roots, size_t n);
+
+// convenience for a single root
+void apexui_render_one(ApexUiContext* ctx, ApexuiNode* root);
+
+// releases the staged nodes and the committed tree without rendering
+void apexui_clear(ApexUiContext* ctx);
+
+// an event handed to an ApexuiHandler; only valid inside the callback
+typedef struct ApexuiEvent ApexuiEvent;
+
+// user callback; ev is owned by the framework and dies right after the call
+typedef void (*ApexuiHandler)(const ApexuiEvent* ev, void* userdata);
+
+// pumps the window once and hands every queued event to the handler in order
+void apexui_poll_events(ApexUiContext* ctx, ApexuiHandler handler, void* userdata);
+
+// event kind
+const char* apexui_event_type(const ApexuiEvent* ev);
+
+// identity (ApexuiOpts.id) of the widget that produced the event
+const char* apexui_event_id(const ApexuiEvent* ev);
+
+// numeric field lookup ("value", "x", "y", "key_code", "mods", "scroll_dy")
+double apexui_event_num(const ApexuiEvent* ev, const char* key);
+
+// string field lookup ("key", "value", "widget", "action", ...)
+const char* apexui_event_str(const ApexuiEvent* ev, const char* key);
 
 // internal key codes used in key events
 #define APEXUI_KEY_ESCAPE     0xFF1B

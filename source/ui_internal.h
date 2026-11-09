@@ -448,6 +448,12 @@ typedef struct UiNotification {
     struct UiContext* ctx;        // back-pointer for the paint hook
 } UiNotification;
 
+// declarative-api node handle
+struct ApexuiNode {
+    Value descr;                    // owned descriptor table reference; none once released
+    struct ApexuiNode* next_free;   // free-list link while parked for reuse
+};
+
 // one block of the per-frame string arena
 typedef struct UiArenaBlock {
     struct UiArenaBlock* next;   // older block, or null
@@ -475,6 +481,12 @@ typedef struct UiContext {
     Value last_tree;            // last widget descriptor passed to render()
     bool  has_tree;             // true when last_tree holds a live reference
     Value key_cache[UK_COUNT];  // borrowed interned field names
+
+    // declarative-api staging arena
+    struct ApexuiNode** node_list;   // array of live node pointers
+    int                 node_count;  // number of live staged nodes
+    int                 node_cap;    // allocated capacity of node_list
+    struct ApexuiNode*  node_free;   // park of released, reusable nodes
 
     // hash-guard for skipping the full tree rebuild when the descriptor tree hasn't changed
     uint64_t last_descr_hash;   // recursive hash of the descriptor tree last built
@@ -566,6 +578,9 @@ typedef struct UiContext {
     UiContextMenu     context_menu;       // one context menu at a time, zeroed when idle
 } UiContext;                    // per-window ui session state
 
+// releases every staged declarative-api node and resets the arena
+void ui_nodes_release_all(UiContext* ctx);
+
 // reads a string field from a table, returns a heap copy or null on miss
 char* ui_table_get_str_dup(UiContext* ctx, Table* t, const char* key);
 
@@ -626,6 +641,10 @@ WidgetState* ui_state_get(UiContext* ctx, uint64_t id);
 
 // enqueue an event
 void ui_event_push(UiContext* ctx, const UiEvent* ev);
+
+// dequeue the oldest event; false when the queue is empty. the caller
+// takes ownership of ev.str_value and must free() it
+bool ui_event_pop(UiContext* ctx, UiEvent* out);
 
 // digest of every visual field of a widget, used for damage detection
 uint64_t ui_visual_hash(Widget* w);

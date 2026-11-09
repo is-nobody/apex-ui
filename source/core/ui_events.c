@@ -31,6 +31,16 @@ void ui_event_push(UiContext* ctx, const UiEvent* ev) {
     ctx->queue.events[ctx->queue.count++] = *ev;          // copy event into the queue
 }
 
+// dequeues the oldest event
+bool ui_event_pop(UiContext* ctx, UiEvent* out) {
+    if (ctx->queue.count <= 0 || !out) return false;         // nothing queued
+    *out = ctx->queue.events[0];                             // hand out the front event
+    memmove(&ctx->queue.events[0], &ctx->queue.events[1],
+            sizeof(UiEvent) * (size_t)(ctx->queue.count - 1));  // shift the queue down
+    ctx->queue.count--;                                      // one fewer queued event
+    return true;
+}
+
 // converts a native ui event into a value table for the host layer
 Value ui_event_to_table(UiContext* ctx, const UiEvent* ev) {
     Table* t = uival_table_create(14);                          // event table with room for ~10 fields
@@ -188,4 +198,3 @@ void apexui_fire_click_b(UiContext* ctx, Widget* w, int button) {
 
 // emits a left-click event for a widget
 void apexui_fire_click(UiContext* ctx, Widget* w) { apexui_fire_click_b(ctx, w, 1); }
-
