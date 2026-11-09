@@ -7,7 +7,7 @@
 ---
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Apex Version](https://img.shields.io/badge/Apex UI-26.11-blue)](https://github.com/is-nobody/apex-lang)
+[![Apex Version](https://img.shields.io/badge/Apex_UI-26.11-blue)](https://github.com/is-nobody/apex-lang)
 ![Available](https://img.shields.io/badge/Available-Windows%20%7C%20macOS%20%7C%20Linux-red)
 
 This is the official repository for [Apex UI](https://github.com/is-nobody/apex-ui).
