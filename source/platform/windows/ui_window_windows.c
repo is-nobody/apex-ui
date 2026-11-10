@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdio.h>
 
-static const WCHAR kClassName[] = L"ApexUiWindowClass";  // registered class name
+static const WCHAR kClassName[] = L"ApexUIWindowClass";  // registered class name
 
 // encodes one unicode codepoint as utf-8 into out, returns the byte count
 int encode_utf8(uint32_t cp, char* out) {

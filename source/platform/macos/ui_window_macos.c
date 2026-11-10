@@ -143,7 +143,7 @@ static void macos_setup_classes(void) {
 
     if (!g_win_cls) {
         Class base = objc_getClass("NSWindow");              // nswindow as base class
-        g_win_cls = objc_allocateClassPair(base, "ApexUiWindow", 0);
+        g_win_cls = objc_allocateClassPair(base, "ApexUIWindow", 0);
         class_addMethod(g_win_cls, OBJC_SEL("canBecomeKeyWindow"),
                         (IMP)apex_win_can_become_key, "B@:");  // enable key status
         class_addMethod(g_win_cls, OBJC_SEL("canBecomeMainWindow"),
@@ -152,7 +152,7 @@ static void macos_setup_classes(void) {
     }
     if (!g_view_cls) {
         Class base = objc_getClass("NSView");                // nsview as base class
-        g_view_cls = objc_allocateClassPair(base, "ApexUiView", 0);
+        g_view_cls = objc_allocateClassPair(base, "ApexUIView", 0);
         class_addMethod(g_view_cls, OBJC_SEL("acceptsFirstResponder"),
                         (IMP)apex_view_accepts_first, "B@:");  // accept keyboard focus
         class_addMethod(g_view_cls, OBJC_SEL("isFlipped"),
@@ -163,7 +163,7 @@ static void macos_setup_classes(void) {
     }
     if (!g_delegate_cls) {
         Class base = objc_getClass("NSObject");              // nsobject as base class
-        g_delegate_cls = objc_allocateClassPair(base, "ApexUiWindowDelegate", 0);
+        g_delegate_cls = objc_allocateClassPair(base, "ApexUIWindowDelegate", 0);
         class_addMethod(g_delegate_cls, OBJC_SEL("windowShouldClose:"),
                         (IMP)apex_delegate_should_close, "B@:@");  // close handshake
         class_addMethod(g_delegate_cls, OBJC_SEL("windowDidResize:"),

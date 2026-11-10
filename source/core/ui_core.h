@@ -9,8 +9,8 @@
 #include "ui_internal.h"
 
 // context lifecycle
-UiContext* apexui_context_create(void);
-void       apexui_context_free(UiContext* ctx);
+UiContext* apex_ui_context_create(void);
+void       apex_ui_context_free(UiContext* ctx);
 
 // widget pool + tree construction helpers
 Widget* ui_widget_alloc(UiContext* ctx);
@@ -37,8 +37,8 @@ void         state_gc_sweep(UiContext* ctx);
 // event queue + table conversion
 void  ui_event_push(UiContext* ctx, const UiEvent* ev);
 Value ui_event_to_table(UiContext* ctx, const UiEvent* ev);
-void  apexui_fire_click(UiContext* ctx, Widget* w);
-void  apexui_fire_click_b(UiContext* ctx, Widget* w, int button);
+void  apex_ui_fire_click(UiContext* ctx, Widget* w);
+void  apex_ui_fire_click_b(UiContext* ctx, Widget* w, int button);
 
 // animation
 void ui_tick(UiContext* ctx, double dt);
@@ -48,23 +48,23 @@ bool ui_animating(UiContext* ctx);
 void ui_ime_sync(UiContext* ctx);
 
 // message loop
-bool apexui_pump(UiContext* ctx);
+bool apex_ui_pump(UiContext* ctx);
 
 // builtin entry points (used by the public api in apex_ui.c)
-Value apexui_impl_init(UiContext* ctx, int argc, Value* argv);
-Value apexui_impl_render(UiContext* ctx, int argc, Value* argv);
-Value apexui_impl_next_event(UiContext* ctx, int argc, Value* argv);
-Value apexui_impl_shutdown(UiContext* ctx, int argc, Value* argv);
-Value apexui_impl_set_title(UiContext* ctx, int argc, Value* argv);
-Value apexui_impl_window_size(UiContext* ctx, int argc, Value* argv);
-Value apexui_impl_open_file(UiContext* ctx, int argc, Value* argv);
-Value apexui_impl_open_folder(UiContext* ctx, int argc, Value* argv);
-Value apexui_impl_save_as(UiContext* ctx, int argc, Value* argv);
-Value apexui_impl_fullscreen(UiContext* ctx, int argc, Value* argv);
+Value apex_ui_impl_init(UiContext* ctx, int argc, Value* argv);
+Value apex_ui_impl_render(UiContext* ctx, int argc, Value* argv);
+Value apex_ui_impl_next_event(UiContext* ctx, int argc, Value* argv);
+Value apex_ui_impl_shutdown(UiContext* ctx, int argc, Value* argv);
+Value apex_ui_impl_set_title(UiContext* ctx, int argc, Value* argv);
+Value apex_ui_impl_window_size(UiContext* ctx, int argc, Value* argv);
+Value apex_ui_impl_open_file(UiContext* ctx, int argc, Value* argv);
+Value apex_ui_impl_open_folder(UiContext* ctx, int argc, Value* argv);
+Value apex_ui_impl_save_as(UiContext* ctx, int argc, Value* argv);
+Value apex_ui_impl_fullscreen(UiContext* ctx, int argc, Value* argv);
 
 // message loop driven by a host callback; the callback receives each event
 // table and returns a widget tree table (or none) which takes over rendering
-void ui_run_loop(UiContext* ctx, apexui_run_fn fn, void* user);
+void ui_run_loop(UiContext* ctx, apex_ui_run_fn fn, void* user);
 
 // host paint hook
 void ui_window_paint_cb(void* user, int w, int h);

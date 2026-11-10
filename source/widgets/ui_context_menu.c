@@ -60,7 +60,7 @@ void ui_context_menu_set(UiContext* ctx, Value items_descr, int px, int py) {
     cm->hover_idx  = -1;
     menu_path_reset(&cm->path, 0);
     cm->anim_t     = 0.0;
-    cm->open_started_at = apexui_now_seconds();
+    cm->open_started_at = apex_ui_now_seconds();
 
     ctx->tooltip_shown_id = 0;                              // menus sit above tooltips
 

@@ -82,7 +82,7 @@ void handle_win_event(UiContext* ctx, const UiWinEvent* e) {
             break;
         }
         case UW_EV_RESIZE: {                                      // window resized
-            ctx->last_resize_at = apexui_now_seconds();             // mark the burst
+            ctx->last_resize_at = apex_ui_now_seconds();             // mark the burst
 #ifdef _WIN32
             // win32: the paint callback fires synchronously
             bool already_done = (ctx->win_w == e->w &&
@@ -105,7 +105,7 @@ void handle_win_event(UiContext* ctx, const UiWinEvent* e) {
             ctx->pending_resize    = true;
             ctx->pending_resize_w  = e->w;
             ctx->pending_resize_h  = e->h;
-            ctx->pending_resize_at = apexui_now_seconds();
+            ctx->pending_resize_at = apex_ui_now_seconds();
 
             if (!already_done)
                 ctx->redraw_needed = true;
@@ -124,7 +124,7 @@ void handle_win_event(UiContext* ctx, const UiWinEvent* e) {
             if (ctx->hovered_id) {
                 for (int i = 0; i < ctx->state.count; i++)
                     if (ctx->state.entries[i].id == ctx->hovered_id) {
-                        ctx->state.entries[i].tooltip_hover_start = apexui_now_seconds();
+                        ctx->state.entries[i].tooltip_hover_start = apex_ui_now_seconds();
                         break;
                     }
             }
@@ -414,7 +414,7 @@ void handle_win_event(UiContext* ctx, const UiWinEvent* e) {
             if (ctx->hovered_id) {
                 for (int i = 0; i < ctx->state.count; i++)
                     if (ctx->state.entries[i].id == ctx->hovered_id) {
-                        ctx->state.entries[i].tooltip_hover_start = apexui_now_seconds();
+                        ctx->state.entries[i].tooltip_hover_start = apex_ui_now_seconds();
                         break;
                     }
             }
@@ -429,7 +429,7 @@ void handle_win_event(UiContext* ctx, const UiWinEvent* e) {
                 if (ctx->dialog.active) break;                    // dialog eats everything else
 
                 Widget* h = ctx->root ? hit_test(ctx, e->x, e->y) : NULL;
-                if (h) apexui_fire_click_b(ctx, h, 3);                   // emit right_click
+                if (h) apex_ui_fire_click_b(ctx, h, 3);                   // emit right_click
                 break;
             }
             if (e->button == 1) {                                 // left button only
@@ -693,7 +693,7 @@ void handle_win_event(UiContext* ctx, const UiWinEvent* e) {
                             else
                                 off = input_hit_offset(ctx, h, local_x);
 
-                            double now = apexui_now_seconds();
+                            double now = apex_ui_now_seconds();
                             bool is_double = (h->id == ctx->last_click_id) &&
                                              (now - ctx->last_click_time) < 0.4;
                             ctx->last_click_id   = h->id;         // remember for next click
@@ -801,7 +801,7 @@ void handle_win_event(UiContext* ctx, const UiWinEvent* e) {
                             ctx->state.entries[i].pressed = false;
                             if (!tab_drag_consumed &&
                                 h && h->id == ctx->state.entries[i].id) {
-                                apexui_fire_click(ctx, h);               // click only if released on same widget
+                                apex_ui_fire_click(ctx, h);               // click only if released on same widget
                             }
                         }
                     }
@@ -827,7 +827,7 @@ void handle_win_event(UiContext* ctx, const UiWinEvent* e) {
             if (ctx->hovered_id) {
                 for (int i = 0; i < ctx->state.count; i++)
                     if (ctx->state.entries[i].id == ctx->hovered_id) {
-                        ctx->state.entries[i].tooltip_hover_start = apexui_now_seconds();
+                        ctx->state.entries[i].tooltip_hover_start = apex_ui_now_seconds();
                         break;
                     }
             }
@@ -1149,12 +1149,12 @@ void handle_win_event(UiContext* ctx, const UiWinEvent* e) {
 
                     if (w->kind == WK_BUTTON &&
                         (e->key == UI_KEY_SPACE || e->key == UI_KEY_ENTER)) {   // space or enter activates
-                        apexui_fire_click(ctx, w);
+                        apex_ui_fire_click(ctx, w);
                         break;
                     }
                     if (w->kind == WK_CHECKBOX &&
                         (e->key == UI_KEY_SPACE || e->key == UI_KEY_ENTER)) {   // space or enter toggles
-                        apexui_fire_click(ctx, w);
+                        apex_ui_fire_click(ctx, w);
                         break;
                     }
                 }

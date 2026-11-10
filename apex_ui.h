@@ -15,140 +15,140 @@ extern "C" {
 #endif
 
 // nan-boxed value cell: none / bool / number / string / table
-typedef uint64_t apexui_value;
+typedef uint64_t apex_ui_value;
 
 // the always-available none value (compile-time constant)
-#define APEXUI_NONE ((apexui_value)0x7FF8000000000000ULL)
+#define APEXUI_NONE ((apex_ui_value)0x7FF8000000000000ULL)
 
 // opaque ui context; one context owns at most one native window
-typedef struct UiContext ApexUiContext;
+typedef struct UiContext ApexUIContext;
 
 // constructors; string constructors copy the bytes
-apexui_value apexui_make_none(void);
-apexui_value apexui_make_bool(bool v);
-apexui_value apexui_make_number(double v);
-apexui_value apexui_make_string(const char* s, int len);        // len bytes copied
-apexui_value apexui_make_string_cstr(const char* s);            // null-terminated
-apexui_value apexui_make_table(int hash_capacity);              // also used as array
+apex_ui_value apex_ui_make_none(void);
+apex_ui_value apex_ui_make_bool(bool v);
+apex_ui_value apex_ui_make_number(double v);
+apex_ui_value apex_ui_make_string(const char* s, int len);        // len bytes copied
+apex_ui_value apex_ui_make_string_cstr(const char* s);            // null-terminated
+apex_ui_value apex_ui_make_table(int hash_capacity);              // also used as array
 
 // reference counting; every value you receive is one reference
-void apexui_value_retain(apexui_value v);
-void apexui_value_release(apexui_value v);
+void apex_ui_value_retain(apex_ui_value v);
+void apex_ui_value_release(apex_ui_value v);
 
 // type queries
-bool apexui_is_none(apexui_value v);
-bool apexui_is_bool(apexui_value v);
-bool apexui_is_number(apexui_value v);
-bool apexui_is_string(apexui_value v);
-bool apexui_is_table(apexui_value v);
+bool apex_ui_is_none(apex_ui_value v);
+bool apex_ui_is_bool(apex_ui_value v);
+bool apex_ui_is_number(apex_ui_value v);
+bool apex_ui_is_string(apex_ui_value v);
+bool apex_ui_is_table(apex_ui_value v);
 
 // accessors; call the matching type query first (undefined otherwise)
-double      apexui_get_number(apexui_value v);
-bool        apexui_get_bool(apexui_value v);
-const char* apexui_get_string_ptr(apexui_value v);   // valid while v is alive
-int         apexui_get_string_len(apexui_value v);
-char*       apexui_string_dup_cstr(apexui_value v);  // malloc'd copy, free() it
+double      apex_ui_get_number(apex_ui_value v);
+bool        apex_ui_get_bool(apex_ui_value v);
+const char* apex_ui_get_string_ptr(apex_ui_value v);   // valid while v is alive
+int         apex_ui_get_string_len(apex_ui_value v);
+char*       apex_ui_string_dup_cstr(apex_ui_value v);  // malloc'd copy, free() it
 
 // inserts or updates key -> value; table keeps its own reference to value
-bool apexui_table_set(apexui_value t, apexui_value key, apexui_value value);
+bool apex_ui_table_set(apex_ui_value t, apex_ui_value key, apex_ui_value value);
 
 // looks a key up; on hit *out receives a new reference the caller must release
-bool apexui_table_get(apexui_value t, apexui_value key, apexui_value* out);
+bool apex_ui_table_get(apex_ui_value t, apex_ui_value key, apex_ui_value* out);
 
 // removes a key; no-op when absent
-void apexui_table_remove(apexui_value t, apexui_value key);
+void apex_ui_table_remove(apex_ui_value t, apex_ui_value key);
 
 // number of live entries (array part + hash part)
-int  apexui_table_size(apexui_value t);
+int  apex_ui_table_size(apex_ui_value t);
 
 // snapshot of all keys; free() the returned array and release each key value
-apexui_value* apexui_table_keys(apexui_value t, int* out_count);
+apex_ui_value* apex_ui_table_keys(apex_ui_value t, int* out_count);
 
-// same as apexui_table_set/get but with a plain c string key
-bool apexui_table_set_cstr(apexui_value t, const char* key, apexui_value value);
-bool apexui_table_get_cstr(apexui_value t, const char* key, apexui_value* out);
+// same as apex_ui_table_set/get but with a plain c string key
+bool apex_ui_table_set_cstr(apex_ui_value t, const char* key, apex_ui_value value);
+bool apex_ui_table_get_cstr(apex_ui_value t, const char* key, apex_ui_value* out);
 
 // typed convenience setters (c string key)
-bool apexui_table_set_number(apexui_value t, const char* key, double v);
-bool apexui_table_set_bool(apexui_value t, const char* key, bool v);
-bool apexui_table_set_string(apexui_value t, const char* key, const char* v);
+bool apex_ui_table_set_number(apex_ui_value t, const char* key, double v);
+bool apex_ui_table_set_bool(apex_ui_value t, const char* key, bool v);
+bool apex_ui_table_set_string(apex_ui_value t, const char* key, const char* v);
 
 // typed convenience getters (c string key); return false on miss/type mismatch
-bool apexui_table_get_number(apexui_value t, const char* key, double* out);
-bool apexui_table_get_bool(apexui_value t, const char* key, bool* out);
-bool apexui_table_get_string(apexui_value t, const char* key,
+bool apex_ui_table_get_number(apex_ui_value t, const char* key, double* out);
+bool apex_ui_table_get_bool(apex_ui_value t, const char* key, bool* out);
+bool apex_ui_table_get_string(apex_ui_value t, const char* key,
                              const char** out_ptr, int* out_len);  // borrowed ptr
 
 // array helpers (1-based integer keys, like the apex language)
-bool apexui_array_push(apexui_value arr, apexui_value v);   // append, returns success
-apexui_value apexui_array_get(apexui_value arr, int index); // 1-based; none if out of range
-int  apexui_array_count(apexui_value arr);                  // length of the array part
+bool apex_ui_array_push(apex_ui_value arr, apex_ui_value v);   // append, returns success
+apex_ui_value apex_ui_array_get(apex_ui_value arr, int index); // 1-based; none if out of range
+int  apex_ui_array_count(apex_ui_value arr);                  // length of the array part
 
 // creates an empty ui context (no window yet); null on allocation failure
-ApexUiContext* apexui_context_create(void);
+ApexUIContext* apex_ui_context_create(void);
 
 // destroys the context, closing the window if still open
-void apexui_context_destroy(ApexUiContext* ctx);
+void apex_ui_context_destroy(ApexUIContext* ctx);
 
 // opens the native window
-apexui_value apexui_init(ApexUiContext* ctx, apexui_value opts);
+apex_ui_value apex_ui_init(ApexUIContext* ctx, apex_ui_value opts);
 
-// value-free convenience for apexui_init
-bool apexui_open(ApexUiContext* ctx, const char* title, int width, int height);
+// value-free convenience for apex_ui_init
+bool apex_ui_open(ApexUIContext* ctx, const char* title, int width, int height);
 
-// closes the native window; the context stays usable for a new apexui_init
-void apexui_shutdown(ApexUiContext* ctx);
+// closes the native window; the context stays usable for a new apex_ui_init
+void apex_ui_shutdown(ApexUIContext* ctx);
 
 // value-level render
-void apexui_render_value(ApexUiContext* ctx, apexui_value tree);
+void apex_ui_render_value(ApexUIContext* ctx, apex_ui_value tree);
 
 // blocks until the next event and returns it as a table
-apexui_value apexui_next_event(ApexUiContext* ctx);
+apex_ui_value apex_ui_next_event(ApexUIContext* ctx);
 
-// host callback for apexui_run
-typedef apexui_value (*apexui_run_fn)(void* user, apexui_value event);
+// host callback for apex_ui_run
+typedef apex_ui_value (*apex_ui_run_fn)(void* user, apex_ui_value event);
 
 // drives the message loop with batched repaints until the window closes
-apexui_value apexui_run(ApexUiContext* ctx, apexui_run_fn fn, void* user);
+apex_ui_value apex_ui_run(ApexUIContext* ctx, apex_ui_run_fn fn, void* user);
 
 // sets the native window title (and the custom titlebar text)
-void apexui_set_title(ApexUiContext* ctx, const char* title);
+void apex_ui_set_title(ApexUIContext* ctx, const char* title);
 
 // current client area size as a {w, h} table
-apexui_value apexui_window_size(ApexUiContext* ctx);
+apex_ui_value apex_ui_window_size(ApexUIContext* ctx);
 
 // native "open file" / "open folder" pickers
-apexui_value apexui_open_file(ApexUiContext* ctx, apexui_value opts);
-apexui_value apexui_open_folder(ApexUiContext* ctx, apexui_value opts);
+apex_ui_value apex_ui_open_file(ApexUIContext* ctx, apex_ui_value opts);
+apex_ui_value apex_ui_open_folder(ApexUIContext* ctx, apex_ui_value opts);
 
 // native "save file" picker
-apexui_value apexui_save_as(ApexUiContext* ctx, const char* content,
-                            int content_len, apexui_value opts);
+apex_ui_value apex_ui_save_as(ApexUIContext* ctx, const char* content,
+                            int content_len, apex_ui_value opts);
 
 // fullscreen helpers; return the resulting fullscreen state
-bool apexui_set_fullscreen(ApexUiContext* ctx, bool enable);
-bool apexui_toggle_fullscreen(ApexUiContext* ctx);
+bool apex_ui_set_fullscreen(ApexUIContext* ctx, bool enable);
+bool apex_ui_toggle_fullscreen(ApexUIContext* ctx);
 
 // modal dialog. descr fields: key, title, message (strings)
-void apexui_dialog(ApexUiContext* ctx, apexui_value descr);
+void apex_ui_dialog(ApexUIContext* ctx, apex_ui_value descr);
 
 // desktop notification popup
-void apexui_notification(ApexUiContext* ctx, apexui_value descr);
+void apex_ui_notification(ApexUIContext* ctx, apex_ui_value descr);
 
 // installs a window menu bar from a descriptor array
-void apexui_menubar(ApexUiContext* ctx, apexui_value descr);
+void apex_ui_menubar(ApexUIContext* ctx, apex_ui_value descr);
 
 // context menu at the current cursor position / at explicit coordinates
-void apexui_context_menu_open(ApexUiContext* ctx, apexui_value items);
-void apexui_context_menu_open_at(ApexUiContext* ctx, apexui_value items, int x, int y);
-void apexui_context_menu_close(ApexUiContext* ctx);
+void apex_ui_context_menu_open(ApexUIContext* ctx, apex_ui_value items);
+void apex_ui_context_menu_open_at(ApexUIContext* ctx, apex_ui_value items, int x, int y);
+void apex_ui_context_menu_close(ApexUIContext* ctx);
 
 // table of named key / modifier constants
-apexui_value apexui_key_constants(void);
+apex_ui_value apex_ui_key_constants(void);
 
 // name-based dispatcher over the value layer ("ui.button", "ui.init", ...)
-bool apexui_call(ApexUiContext* ctx, const char* name,
-                 int argc, const apexui_value* args, apexui_value* result);
+bool apex_ui_call(ApexUIContext* ctx, const char* name,
+                 int argc, const apex_ui_value* args, apex_ui_value* result);
 
 // widget options for the node constructors
 typedef struct {
@@ -158,89 +158,89 @@ typedef struct {
     double      height;     // explicit pixel height, 0 = auto
     bool        disabled;   // greyed out and input-ignoring
     bool        checked;    // initial checkbox state
-} ApexuiOpts;
+} ApexUIOpts;
 
 // opaque, context-owned widget handle (see the ownership model up top)
-typedef struct ApexuiNode ApexuiNode;
+typedef struct ApexUINode ApexUINode;
 
 // a push button with a text label
-ApexuiNode* apexui_button(ApexUiContext* ctx, const char* label);
-ApexuiNode* apexui_button_ex(ApexUiContext* ctx, const char* label, ApexuiOpts opts);
+ApexUINode* apex_ui_button(ApexUIContext* ctx, const char* label);
+ApexUINode* apex_ui_button_ex(ApexUIContext* ctx, const char* label, ApexUIOpts opts);
 
 // a line of body text
-ApexuiNode* apexui_label(ApexUiContext* ctx, const char* text);
-ApexuiNode* apexui_label_ex(ApexUiContext* ctx, const char* text, ApexuiOpts opts);
+ApexUINode* apex_ui_label(ApexUIContext* ctx, const char* text);
+ApexUINode* apex_ui_label_ex(ApexUIContext* ctx, const char* text, ApexUIOpts opts);
 
 // a line of heading text (larger font)
-ApexuiNode* apexui_heading(ApexUiContext* ctx, const char* text);
-ApexuiNode* apexui_heading_ex(ApexUiContext* ctx, const char* text, ApexuiOpts opts);
+ApexUINode* apex_ui_heading(ApexUIContext* ctx, const char* text);
+ApexUINode* apex_ui_heading_ex(ApexUIContext* ctx, const char* text, ApexUIOpts opts);
 
 // a horizontal rule
-ApexuiNode* apexui_separator(ApexUiContext* ctx);
-ApexuiNode* apexui_separator_ex(ApexUiContext* ctx, ApexuiOpts opts);
+ApexUINode* apex_ui_separator(ApexUIContext* ctx);
+ApexUINode* apex_ui_separator_ex(ApexUIContext* ctx, ApexUIOpts opts);
 
 // an empty flexible gap; opts.width / opts.height make it a fixed-size gap
-ApexuiNode* apexui_spacer(ApexUiContext* ctx);
-ApexuiNode* apexui_spacer_ex(ApexUiContext* ctx, ApexuiOpts opts);
+ApexUINode* apex_ui_spacer(ApexUIContext* ctx);
+ApexUINode* apex_ui_spacer_ex(ApexUIContext* ctx, ApexUIOpts opts);
 
 // a checkbox with a text label; opts.checked sets the initial state
-ApexuiNode* apexui_checkbox(ApexUiContext* ctx, const char* label);
-ApexuiNode* apexui_checkbox_ex(ApexUiContext* ctx, const char* label, ApexuiOpts opts);
+ApexUINode* apex_ui_checkbox(ApexUIContext* ctx, const char* label);
+ApexUINode* apex_ui_checkbox_ex(ApexUIContext* ctx, const char* label, ApexUIOpts opts);
 
 // a single-line text input; text is the initial content
-ApexuiNode* apexui_input(ApexUiContext* ctx, const char* text);
-ApexuiNode* apexui_input_ex(ApexUiContext* ctx, const char* text, ApexuiOpts opts);
+ApexUINode* apex_ui_input(ApexUIContext* ctx, const char* text);
+ApexUINode* apex_ui_input_ex(ApexUIContext* ctx, const char* text, ApexUIOpts opts);
 
 // a dropdown ("select") showing `selected`; items is an array of n labels
-ApexuiNode* apexui_dropdown(ApexUiContext* ctx, const char* selected,
+ApexUINode* apex_ui_dropdown(ApexUIContext* ctx, const char* selected,
                             const char* const* items, size_t n);
-ApexuiNode* apexui_dropdown_ex(ApexUiContext* ctx, const char* selected,
-                               const char* const* items, size_t n, ApexuiOpts opts);
+ApexUINode* apex_ui_dropdown_ex(ApexUIContext* ctx, const char* selected,
+                               const char* const* items, size_t n, ApexUIOpts opts);
 
 // vertical stack of children
-ApexuiNode* apexui_column(ApexUiContext* ctx, ApexuiNode* const* kids, size_t n);
-ApexuiNode* apexui_column_ex(ApexUiContext* ctx, ApexuiNode* const* kids,
-                             size_t n, ApexuiOpts opts);
+ApexUINode* apex_ui_column(ApexUIContext* ctx, ApexUINode* const* kids, size_t n);
+ApexUINode* apex_ui_column_ex(ApexUIContext* ctx, ApexUINode* const* kids,
+                             size_t n, ApexUIOpts opts);
 
 // horizontal row of children
-ApexuiNode* apexui_row(ApexUiContext* ctx, ApexuiNode* const* kids, size_t n);
-ApexuiNode* apexui_row_ex(ApexUiContext* ctx, ApexuiNode* const* kids,
-                          size_t n, ApexuiOpts opts);
+ApexUINode* apex_ui_row(ApexUIContext* ctx, ApexUINode* const* kids, size_t n);
+ApexUINode* apex_ui_row_ex(ApexUIContext* ctx, ApexUINode* const* kids,
+                          size_t n, ApexUIOpts opts);
 
 // grid laying the children out row-major into `cols` equal-weight columns
-ApexuiNode* apexui_grid(ApexUiContext* ctx, int cols, ApexuiNode* const* kids, size_t n);
-ApexuiNode* apexui_grid_ex(ApexUiContext* ctx, int cols, ApexuiNode* const* kids,
-                           size_t n, ApexuiOpts opts);
+ApexUINode* apex_ui_grid(ApexUIContext* ctx, int cols, ApexUINode* const* kids, size_t n);
+ApexUINode* apex_ui_grid_ex(ApexUIContext* ctx, int cols, ApexUINode* const* kids,
+                           size_t n, ApexUIOpts opts);
 
 // atomically commits a new tree from the root nodes
-void apexui_render(ApexUiContext* ctx, ApexuiNode* const* roots, size_t n);
+void apex_ui_render(ApexUIContext* ctx, ApexUINode* const* roots, size_t n);
 
 // convenience for a single root
-void apexui_render_one(ApexUiContext* ctx, ApexuiNode* root);
+void apex_ui_render_one(ApexUIContext* ctx, ApexUINode* root);
 
 // releases the staged nodes and the committed tree without rendering
-void apexui_clear(ApexUiContext* ctx);
+void apex_ui_clear(ApexUIContext* ctx);
 
-// an event handed to an ApexuiHandler; only valid inside the callback
-typedef struct ApexuiEvent ApexuiEvent;
+// an event handed to an ApexUIHandler; only valid inside the callback
+typedef struct ApexUIEvent ApexUIEvent;
 
 // user callback; ev is owned by the framework and dies right after the call
-typedef void (*ApexuiHandler)(const ApexuiEvent* ev, void* userdata);
+typedef void (*ApexUIHandler)(const ApexUIEvent* ev, void* userdata);
 
 // pumps the window once and hands every queued event to the handler in order
-void apexui_poll_events(ApexUiContext* ctx, ApexuiHandler handler, void* userdata);
+void apex_ui_poll_events(ApexUIContext* ctx, ApexUIHandler handler, void* userdata);
 
 // event kind
-const char* apexui_event_type(const ApexuiEvent* ev);
+const char* apex_ui_event_type(const ApexUIEvent* ev);
 
-// identity (ApexuiOpts.id) of the widget that produced the event
-const char* apexui_event_id(const ApexuiEvent* ev);
+// identity (ApexUIOpts.id) of the widget that produced the event
+const char* apex_ui_event_id(const ApexUIEvent* ev);
 
 // numeric field lookup ("value", "x", "y", "key_code", "mods", "scroll_dy")
-double apexui_event_num(const ApexuiEvent* ev, const char* key);
+double apex_ui_event_num(const ApexUIEvent* ev, const char* key);
 
 // string field lookup ("key", "value", "widget", "action", ...)
-const char* apexui_event_str(const ApexuiEvent* ev, const char* key);
+const char* apex_ui_event_str(const ApexUIEvent* ev, const char* key);
 
 // internal key codes used in key events
 #define APEXUI_KEY_ESCAPE     0xFF1B

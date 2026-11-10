@@ -212,12 +212,12 @@ void ui_window_paint_cb(void* user, int w, int h) {
 }
 
 // pumps the window event loop once, returning true if events were queued
-bool apexui_pump(UiContext* ctx) {
+bool apex_ui_pump(UiContext* ctx) {
     if (!ctx->window) return false;                               // no window: nothing to pump
 
     // advance animated state first, before any early return
     static double s_last_tick = 0.0;                              // previous wall-clock reading
-    double now = apexui_now_seconds();
+    double now = apex_ui_now_seconds();
     double dt = now - s_last_tick;
     s_last_tick = now;
     if (dt < 0.0) dt = 0.0;                                       // clock went backwards
@@ -250,7 +250,7 @@ bool apexui_pump(UiContext* ctx) {
     // deliver a single ev_resize after the user has stopped dragging
     #define RESIZE_DEBOUNCE_SEC 0.08
     if (ctx->pending_resize &&
-        apexui_now_seconds() - ctx->pending_resize_at > RESIZE_DEBOUNCE_SEC) {
+        apex_ui_now_seconds() - ctx->pending_resize_at > RESIZE_DEBOUNCE_SEC) {
         UiEvent ev; memset(&ev, 0, sizeof(ev));
         ev.kind      = EV_RESIZE;
         ev.num_value = (double)ctx->pending_resize_w;
@@ -293,7 +293,7 @@ void ui_ime_sync(UiContext* ctx) {
 }
 
 // builtin: creates the native window if not already open
-Value apexui_impl_init(UiContext* ctx, int argc, Value* argv) {
+Value apex_ui_impl_init(UiContext* ctx, int argc, Value* argv) {
     if (ctx->window) return MAKE_BOOL(true);                      // already initialised
     int w = 640, h = 480;                                         // default window size
     int min_w = UI_MIN_W, min_h = UI_MIN_H;                       // default minimum size
@@ -332,7 +332,7 @@ Value apexui_impl_init(UiContext* ctx, int argc, Value* argv) {
 }
 
 // builtin: records the current widget tree descriptor for the next repaint
-Value apexui_impl_render(UiContext* ctx, int argc, Value* argv) {
+Value apex_ui_impl_render(UiContext* ctx, int argc, Value* argv) {
     if (ctx->has_tree && (ctx->last_tree & QNAN) == QNAN)
         uival_value_decref(ctx->last_tree);                             // release previous tree reference
     if (argc >= 1 && (argv[0] & QNAN) == QNAN) {                  // new tree is heap-tagged
@@ -348,7 +348,7 @@ Value apexui_impl_render(UiContext* ctx, int argc, Value* argv) {
 }
 
 // builtin: blocks until an event is available, returns it as a table
-Value apexui_impl_next_event(UiContext* ctx, int argc, Value* argv) {
+Value apex_ui_impl_next_event(UiContext* ctx, int argc, Value* argv) {
     (void)argc; (void)argv;                                       // no arguments
     if (!ctx->window) return MAKE_NONE();                         // no window: nothing to wait on
 
@@ -361,7 +361,7 @@ Value apexui_impl_next_event(UiContext* ctx, int argc, Value* argv) {
             break;
         }
         if (ctx->redraw_needed) rebuild_and_draw(ctx);            // repaint if requested
-        apexui_pump(ctx);                                                // drain native events
+        apex_ui_pump(ctx);                                                // drain native events
         if (ctx->queue.count > 0) break;                          // event arrived
         if (++safety > 5000) break;                               // give up after too many empty spins
     }
@@ -378,14 +378,14 @@ Value apexui_impl_next_event(UiContext* ctx, int argc, Value* argv) {
 }
 
 // drive the message loop with batched repaints, delegating events to a host callback
-void ui_run_loop(UiContext* ctx, apexui_run_fn fn, void* user) {
+void ui_run_loop(UiContext* ctx, apex_ui_run_fn fn, void* user) {
     if (!ctx->window) return;                         // no window: nothing to run
     if (!fn) return;                                  // callback required
 
     if (ctx->redraw_needed) rebuild_and_draw(ctx);    // honour a pre-render tree
 
     while (!ctx->quit_requested && ui_window_is_open(ctx->window)) {
-        apexui_pump(ctx);                                    // block, drain native events
+        apex_ui_pump(ctx);                                    // block, drain native events
 
         bool rebuilt = false;                         // did any callback return a tree?
 
@@ -400,7 +400,7 @@ void ui_run_loop(UiContext* ctx, apexui_run_fn fn, void* user) {
 
             // the callback owns the returned tree table (or none); the event
             // table stays owned by this loop and is released right after
-            Value result = (Value)fn(user, (apexui_value)ev_tbl);
+            Value result = (Value)fn(user, (apex_ui_value)ev_tbl);
             uival_value_decref(ev_tbl);                     // release our local reference
 
             if (IS_TABLE(result)) {                   // callback staged a new tree
@@ -421,7 +421,7 @@ void ui_run_loop(UiContext* ctx, apexui_run_fn fn, void* user) {
 
         if (rebuilt || ctx->redraw_needed) {          // one rebuild per batch
             // during a resize burst, an rbd that is not backed by a queue event
-            bool recently_resized = (apexui_now_seconds() - ctx->last_resize_at) < 0.050;
+            bool recently_resized = (apex_ui_now_seconds() - ctx->last_resize_at) < 0.050;
             bool skip = (!rebuilt &&
                          recently_resized &&
                          ctx->last_rbd_w == ctx->win_w &&
@@ -436,7 +436,7 @@ void ui_run_loop(UiContext* ctx, apexui_run_fn fn, void* user) {
 }
 
 // builtin: destroys the native window and marks the context as shut down
-Value apexui_impl_shutdown(UiContext* ctx, int argc, Value* argv) {
+Value apex_ui_impl_shutdown(UiContext* ctx, int argc, Value* argv) {
     (void)argc; (void)argv;                                       // no arguments
     if (ctx->context_menu.active) ui_context_menu_close(ctx);     // drop any open menu first
     if (ctx->window) {                                            // tear down the window if present
@@ -452,7 +452,7 @@ Value apexui_impl_shutdown(UiContext* ctx, int argc, Value* argv) {
 }
 
 // builtin: sets the native window title
-Value apexui_impl_set_title(UiContext* ctx, int argc, Value* argv) {
+Value apex_ui_impl_set_title(UiContext* ctx, int argc, Value* argv) {
     if (!ctx->window) return MAKE_NONE();                         // no window: no-op
     if (argc >= 1 && IS_STRING(argv[0])) {                        // only string titles are applied
         const char* s = AS_STRING(argv[0])->chars;
@@ -465,7 +465,7 @@ Value apexui_impl_set_title(UiContext* ctx, int argc, Value* argv) {
 }
 
 // builtin: returns the current window size as a {w, h} table
-Value apexui_impl_window_size(UiContext* ctx, int argc, Value* argv) {
+Value apex_ui_impl_window_size(UiContext* ctx, int argc, Value* argv) {
     (void)argc; (void)argv;                                       // no arguments
     Table* t = uival_table_create(4);                                   // small result table
     Value k, v;
@@ -532,7 +532,7 @@ static void free_picker_opts(char* title, char* def,
 }
 
 // builtin: ui.open_file(opts?) — native "open file" dialog
-Value apexui_impl_open_file(UiContext* ctx, int argc, Value* argv) {
+Value apex_ui_impl_open_file(UiContext* ctx, int argc, Value* argv) {
     if (!ctx->window) return MAKE_NONE();                 // no native window: nothing to anchor to
 
     char* title = NULL;
@@ -551,7 +551,7 @@ Value apexui_impl_open_file(UiContext* ctx, int argc, Value* argv) {
 }
 
 // builtin: ui.open_folder(opts?) — native "open folder" dialog
-Value apexui_impl_open_folder(UiContext* ctx, int argc, Value* argv) {
+Value apex_ui_impl_open_folder(UiContext* ctx, int argc, Value* argv) {
     if (!ctx->window) return MAKE_NONE();
 
     char* title = NULL;
@@ -580,7 +580,7 @@ static bool save_write_file(const char* path, const char* content, int len) {
 }
 
 // builtin: ui.save_as(content, opts?) — native "save file" dialog + write
-Value apexui_impl_save_as(UiContext* ctx, int argc, Value* argv) {
+Value apex_ui_impl_save_as(UiContext* ctx, int argc, Value* argv) {
     if (!ctx->window) return MAKE_NONE();                 // no native window: nothing to anchor to
 
     if (argc < 1 || !IS_STRING(argv[0])) return MAKE_NONE();  // content must be a string
@@ -610,7 +610,7 @@ Value apexui_impl_save_as(UiContext* ctx, int argc, Value* argv) {
 }
 
 // builtin: ui.fullscreen(opts?) — toggle or set the window's fullscreen state
-Value apexui_impl_fullscreen(UiContext* ctx, int argc, Value* argv) {
+Value apex_ui_impl_fullscreen(UiContext* ctx, int argc, Value* argv) {
     if (!ctx->window) return MAKE_BOOL(false);            // no window: nothing to do
 
     bool want = !ui_window_is_fullscreen(ctx->window);    // default: flip the current state

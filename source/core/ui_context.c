@@ -16,7 +16,7 @@
 #include <string.h>
 
 // creates a fresh ui context with its own intern table and key cache
-UiContext* apexui_context_create(void) {
+UiContext* apex_ui_context_create(void) {
     UiContext* ctx = (UiContext*)calloc(1, sizeof(UiContext));    // fresh zeroed context
     if (!ctx) return NULL;                                        // allocation failed
     ctx->focused_id = 0;                                          // nothing focused
@@ -68,7 +68,7 @@ static void free_state_entry(WidgetState* s) {
 }
 
 // tears down the ui context and releases every owned allocation
-void apexui_context_free(UiContext* ctx) {
+void apex_ui_context_free(UiContext* ctx) {
     if (!ctx) return;                                             // null guard
     ui_nodes_release_all(ctx);                                    // drop staged declarative-api nodes
     ui_widgets_reset(ctx);                                        // free all per-widget allocations
@@ -95,7 +95,7 @@ void apexui_context_free(UiContext* ctx) {
     ctx->has_tree = false;
     free(ctx->node_list);                                         // free the staged-node pointer array
     while (ctx->node_free) {                                      // free every parked node struct
-        struct ApexuiNode* n = ctx->node_free;
+        struct ApexUINode* n = ctx->node_free;
         ctx->node_free = n->next_free;
         free(n);
     }

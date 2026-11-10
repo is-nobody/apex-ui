@@ -1,9 +1,9 @@
-// source/common/apexui_value.c
+// source/common/apex_ui_value.c
 // Self-contained nan-boxed value runtime for the Apex UI library
 // https://github.com/is-nobody/apex-ui
 // MIT license
 
-#include "apexui_value.h"
+#include "apex_ui_value.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -451,7 +451,7 @@ Value* uival_table_keys(Table* table, int* out_count) {
 }
 
 // returns current wall-clock time in seconds
-double apexui_now_seconds(void) {
+double apex_ui_now_seconds(void) {
 #ifdef _WIN32
     struct _timeb tb;                                   // windows timeb
     _ftime(&tb);                                        // read wall clock

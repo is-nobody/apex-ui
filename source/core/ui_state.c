@@ -148,7 +148,7 @@ void ui_tick(UiContext* ctx, double dt) {
 
     // tooltip: fire the pending timer, or drop a stale one
     {
-        double now = apexui_now_seconds();
+        double now = apex_ui_now_seconds();
         if (ctx->tooltip_shown_id) {
             // a shown tooltip is only valid while its widget is alive and visible
             bool found = false;
@@ -372,7 +372,7 @@ void ui_tick(UiContext* ctx, double dt) {
                 if (d->anim_t == 0.0) dialog_finish_close(ctx);  // fade done: emit + drop
             }
         } else if (d->anim_t < 1.0) {
-            double now = apexui_now_seconds();
+            double now = apex_ui_now_seconds();
             if (d->open_started_at == 0.0) {
                 d->open_started_at = now;                        // anchor: don't advance yet
                 ctx->redraw_needed = true;                       // make the next tick soon

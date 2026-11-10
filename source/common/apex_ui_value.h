@@ -1,4 +1,4 @@
-// source/common/apexui_value.h
+// source/common/apex_ui_value.h
 // Self-contained nan-boxed value runtime for the Apex UI library
 // https://github.com/is-nobody/apex-ui
 // MIT license
@@ -13,11 +13,11 @@
 #include <math.h>
 
 // public value type of the apex ui api; identical to the internal Value below
-typedef uint64_t apexui_value;
+typedef uint64_t apex_ui_value;
 
 // host callback used by the batched run loop; declared here so the internal
 // headers see it, and re-declared identically in apex_ui.h for hosts
-typedef apexui_value (*apexui_run_fn)(void* user, apexui_value event);
+typedef apex_ui_value (*apex_ui_run_fn)(void* user, apex_ui_value event);
 
 // nan boxing value representation
 // uses ieee 754 double nan space to encode type tags in the mantissa bits
@@ -75,7 +75,7 @@ typedef apexui_value (*apexui_run_fn)(void* user, apexui_value event);
 #define IS_PLAIN(v) (((v) & QNAN) != QNAN)
 
 // value is a single 64-bit integer using nan boxing; same bit layout as
-// the public apexui_value type, so values can cross the API boundary as-is
+// the public apex_ui_value type, so values can cross the API boundary as-is
 typedef uint64_t Value;
 
 // value type enum
@@ -85,17 +85,17 @@ typedef enum {
     VAL_NONE,            // special none tag
     VAL_BOOL,            // boolean true or false (tagged nan)
     VAL_TABLE,           // hash table / array (pointer tagged in nan)
-} ApexUiValueType;
+} ApexUIValueType;
 
 // reference counting header for garbage-collected objects
 typedef struct {
     int ref_count;              // number of references to this object
-    ApexUiValueType type;       // discriminator for the object type
-} ApexUiRefHeader;
+    ApexUIValueType type;       // discriminator for the object type
+} ApexUIRefHeader;
 
 // string object with refcounted storage, hash cache, and flexible array
 typedef struct StringObject {
-    ApexUiRefHeader header;     // reference counting header
+    ApexUIRefHeader header;     // reference counting header
     uint32_t hash;              // cached hash for faster comparisons
     bool hash_computed;         // whether the hash has been calculated
     int length;                 // string length in bytes
@@ -112,7 +112,7 @@ typedef struct TableEntry {
 
 // fast table with separate array part for integer keys (o(1) direct access)
 typedef struct Table {
-    ApexUiRefHeader header;     // reference counting header
+    ApexUIRefHeader header;     // reference counting header
     TableEntry** entries;       // hash buckets for string keys
     int capacity;               // hash table capacity
     int hash_count;             // number of entries in hash part
@@ -180,6 +180,6 @@ int uival_table_size(Table* table);
 Value* uival_table_keys(Table* table, int* out_count);
 
 // returns current wall-clock time in seconds
-double apexui_now_seconds(void);
+double apex_ui_now_seconds(void);
 
 #endif // APEXUI_VALUE_H

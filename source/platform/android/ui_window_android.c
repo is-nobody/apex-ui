@@ -14,7 +14,7 @@
 
 // android 14 tags native heap pointers by default (mte)
 __attribute__((constructor))
-static void apexui_disable_mte(void) {
+static void apex_ui_disable_mte(void) {
 #ifdef M_BIONIC_SET_HEAP_TAGGING_LEVEL
     mallopt(M_BIONIC_SET_HEAP_TAGGING_LEVEL, M_HEAP_TAGGING_LEVEL_NONE);
 #endif

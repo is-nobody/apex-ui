@@ -148,7 +148,7 @@ Value ui_event_to_table(UiContext* ctx, const UiEvent* ev) {
 }
 
 // emits a click (button 1) or right-click (button 3) event for a widget
-void apexui_fire_click_b(UiContext* ctx, Widget* w, int button) {
+void apex_ui_fire_click_b(UiContext* ctx, Widget* w, int button) {
     if (button == 3) {                                            // right-click: never toggles state
         if (w->kind == WK_TREE) {                                 // per-row dispatch
             tree_handle_press(ctx, w, 3);
@@ -197,4 +197,4 @@ void apexui_fire_click_b(UiContext* ctx, Widget* w, int button) {
 }
 
 // emits a left-click event for a widget
-void apexui_fire_click(UiContext* ctx, Widget* w) { apexui_fire_click_b(ctx, w, 1); }
+void apex_ui_fire_click(UiContext* ctx, Widget* w) { apex_ui_fire_click_b(ctx, w, 1); }

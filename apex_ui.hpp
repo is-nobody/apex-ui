@@ -13,7 +13,7 @@
 
 namespace apex {
 
-// widget options, mirroring ApexuiOpts field for field; zero/null = "not set"
+// widget options, mirroring ApexUIOpts field for field; zero/null = "not set"
 class Opts {
 public:
     const char* id        = nullptr;  // stable identity, reported back by events
@@ -30,8 +30,8 @@ public:
     Opts& with_disabled(bool v = true) { disabled = v;  return *this; }  // fluent setter
     Opts&  with_checked(bool v = true) { checked = v;   return *this; }  // fluent setter
 
-    ApexuiOpts to_c() const {                                           // plain-c view
-        ApexuiOpts o;
+    ApexUIOpts to_c() const {                                           // plain-c view
+        ApexUIOpts o;
         o.id = id; o.css_class = css_class;
         o.width = width; o.height = height;
         o.disabled = disabled;
@@ -44,42 +44,42 @@ public:
 class Node {
 public:
     Node() : node_(nullptr) {}                                    // null handle
-    explicit Node(ApexuiNode* n) : node_(n) {}                    // wrap raw c handle
+    explicit Node(ApexUINode* n) : node_(n) {}                    // wrap raw c handle
 
-    ApexuiNode* c_node() const { return node_; }                  // raw handle for c api calls
+    ApexUINode* c_node() const { return node_; }                  // raw handle for c api calls
     explicit operator bool() const { return node_ != nullptr; }   // null check
 
     friend bool operator==(const Node& a, const Node& b) { return a.node_ == b.node_; }
     friend bool operator!=(const Node& a, const Node& b) { return a.node_ != b.node_; }
 
 private:
-    ApexuiNode* node_;                                            // non-owning pointer
+    ApexUINode* node_;                                            // non-owning pointer
 };
 
 // borrowed view over an event handed to a poll callback; do not store
 class Event {
 public:
-    explicit Event(const ApexuiEvent* ev) : ev_(ev) {}
+    explicit Event(const ApexUIEvent* ev) : ev_(ev) {}
 
-    const char* type() const { return apexui_event_type(ev_); }                    // "click", "change", ...
-    const char* id() const   { return apexui_event_id(ev_); }                      // source widget's Opts::id
-    double num(const char* key) const { return apexui_event_num(ev_, key); }       // numeric field
-    const char* str(const char* key) const { return apexui_event_str(ev_, key); }  // borrowed pointer
+    const char* type() const { return apex_ui_event_type(ev_); }                    // "click", "change", ...
+    const char* id() const   { return apex_ui_event_id(ev_); }                      // source widget's Opts::id
+    double num(const char* key) const { return apex_ui_event_num(ev_, key); }       // numeric field
+    const char* str(const char* key) const { return apex_ui_event_str(ev_, key); }  // borrowed pointer
 
 private:
-    const ApexuiEvent* ev_;
+    const ApexUIEvent* ev_;
 };
 
-// non-copyable facade over an ApexUiContext; the context stays owned by the caller
+// non-copyable facade over an ApexUIContext; the context stays owned by the caller
 class Ui {
 public:
-    explicit Ui(ApexUiContext* ctx) : ctx_(ctx) {}
+    explicit Ui(ApexUIContext* ctx) : ctx_(ctx) {}
     Ui(const Ui&) = delete;
     Ui& operator=(const Ui&) = delete;
 
-    ApexUiContext* ctx() const { return ctx_; }                    // raw context
+    ApexUIContext* ctx() const { return ctx_; }                    // raw context
     bool open(const char* title, int width, int height) {          // opens the native window
-        return apexui_open(ctx_, title, width, height);
+        return apex_ui_open(ctx_, title, width, height);
     }
 
     // leaf widgets
@@ -114,19 +114,19 @@ public:
     void clear();                                                  // drop tree without rendering
 
 private:
-    ApexUiContext* ctx_;                                           // non-owning context pointer
+    ApexUIContext* ctx_;                                           // non-owning context pointer
 };
 
 // pumps the context once and invokes fn per queued event, in order
 template <typename F>
-inline void poll_events(ApexUiContext* ctx, F&& fn) {
+inline void poll_events(ApexUIContext* ctx, F&& fn) {
     using Fn = std::remove_reference_t<F>;                         // strip the reference
-    auto thunk = [](const ApexuiEvent* ev, void* ud) {             // c callback trampoline
+    auto thunk = [](const ApexUIEvent* ev, void* ud) {             // c callback trampoline
         Fn& f = *static_cast<Fn*>(ud);
         f(Event(ev));
     };
     Fn* fn_ptr = &fn;                                              // safe for lvalue lambdas
-    apexui_poll_events(ctx, static_cast<ApexuiHandler>(thunk), fn_ptr);
+    apex_ui_poll_events(ctx, static_cast<ApexUIHandler>(thunk), fn_ptr);
 }
 
 } // namespace apex

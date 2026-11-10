@@ -83,16 +83,16 @@ static Value make_statusbar(Value opts) {
 }
 
 // constructs the none value
-apexui_value apexui_make_none(void)   { return MAKE_NONE(); }
+apex_ui_value apex_ui_make_none(void)   { return MAKE_NONE(); }
 
 // constructs a boolean value
-apexui_value apexui_make_bool(bool v) { return MAKE_BOOL(v); }
+apex_ui_value apex_ui_make_bool(bool v) { return MAKE_BOOL(v); }
 
 // constructs a numeric value
-apexui_value apexui_make_number(double v) { return MAKE_NUMBER(v); }
+apex_ui_value apex_ui_make_number(double v) { return MAKE_NUMBER(v); }
 
 // constructs a string value from a byte range; caller owns the reference
-apexui_value apexui_make_string(const char* s, int len) {
+apex_ui_value apex_ui_make_string(const char* s, int len) {
     if (!s) { len = 0; s = ""; }
     if (len < 0) len = 0;
     StringObject* str = uival_string_create(s, len);
@@ -101,58 +101,58 @@ apexui_value apexui_make_string(const char* s, int len) {
 }
 
 // constructs a string value from a null-terminated c string
-apexui_value apexui_make_string_cstr(const char* s) {
-    return apexui_make_string(s, s ? (int)strlen(s) : 0);
+apex_ui_value apex_ui_make_string_cstr(const char* s) {
+    return apex_ui_make_string(s, s ? (int)strlen(s) : 0);
 }
 
 // constructs a fresh hash table (also used as an array); caller owns the reference
-apexui_value apexui_make_table(int hash_capacity) {
+apex_ui_value apex_ui_make_table(int hash_capacity) {
     Table* t = uival_table_create(hash_capacity > 0 ? hash_capacity : 8);
     if (!t) return MAKE_NONE();
     return MAKE_TABLE(t);                // caller owns the fresh table
 }
 
 // bumps the reference count of a heap-tagged value
-void apexui_value_retain(apexui_value v)  { uival_value_incref((Value)v); }
+void apex_ui_value_retain(apex_ui_value v)  { uival_value_incref((Value)v); }
 
 // drops one reference; frees the object when the count hits zero
-void apexui_value_release(apexui_value v) { uival_value_decref((Value)v); }
+void apex_ui_value_release(apex_ui_value v) { uival_value_decref((Value)v); }
 
 // true when the value holds the none tag
-bool apexui_is_none(apexui_value v)   { return IS_NONE(v); }
+bool apex_ui_is_none(apex_ui_value v)   { return IS_NONE(v); }
 
 // true when the value holds a boolean
-bool apexui_is_bool(apexui_value v)   { return IS_BOOL(v); }
+bool apex_ui_is_bool(apex_ui_value v)   { return IS_BOOL(v); }
 
 // true when the value holds a number
-bool apexui_is_number(apexui_value v) { return IS_NUMBER(v); }
+bool apex_ui_is_number(apex_ui_value v) { return IS_NUMBER(v); }
 
 // true when the value holds a string
-bool apexui_is_string(apexui_value v) { return IS_STRING(v); }
+bool apex_ui_is_string(apex_ui_value v) { return IS_STRING(v); }
 
 // true when the value holds a table
-bool apexui_is_table(apexui_value v)  { return IS_TABLE(v); }
+bool apex_ui_is_table(apex_ui_value v)  { return IS_TABLE(v); }
 
-// unwraps a number; caller must check apexui_is_number first
-double apexui_get_number(apexui_value v) { return AS_NUMBER(v); }
+// unwraps a number; caller must check apex_ui_is_number first
+double apex_ui_get_number(apex_ui_value v) { return AS_NUMBER(v); }
 
-// unwraps a boolean; caller must check apexui_is_bool first
-bool   apexui_get_bool(apexui_value v)   { return AS_BOOL(v); }
+// unwraps a boolean; caller must check apex_ui_is_bool first
+bool   apex_ui_get_bool(apex_ui_value v)   { return AS_BOOL(v); }
 
 // borrowed pointer to the string bytes, or null; valid while v is alive
-const char* apexui_get_string_ptr(apexui_value v) {
+const char* apex_ui_get_string_ptr(apex_ui_value v) {
     if (!IS_STRING(v)) return NULL;
     return AS_STRING(v)->chars;
 }
 
 // byte length of the string, or zero
-int apexui_get_string_len(apexui_value v) {
+int apex_ui_get_string_len(apex_ui_value v) {
     if (!IS_STRING(v)) return 0;
     return AS_STRING(v)->length;
 }
 
 // malloc'd copy of the string, null-terminated; free() it
-char* apexui_string_dup_cstr(apexui_value v) {
+char* apex_ui_string_dup_cstr(apex_ui_value v) {
     if (!IS_STRING(v)) return NULL;
     StringObject* s = AS_STRING(v);
     char* out = (char*)malloc((size_t)s->length + 1);
@@ -163,45 +163,45 @@ char* apexui_string_dup_cstr(apexui_value v) {
 }
 
 // inserts or updates key -> value; table takes its own reference to value
-bool apexui_table_set(apexui_value t, apexui_value key, apexui_value value) {
+bool apex_ui_table_set(apex_ui_value t, apex_ui_value key, apex_ui_value value) {
     if (!IS_TABLE(t)) return false;
     return uival_table_set(AS_TABLE(t), (Value)key, (Value)value);
 }
 
 // looks a key up; on hit *out receives a new reference the caller must release
-bool apexui_table_get(apexui_value t, apexui_value key, apexui_value* out) {
+bool apex_ui_table_get(apex_ui_value t, apex_ui_value key, apex_ui_value* out) {
     if (!IS_TABLE(t) || !out) return false;
     Value v;
     if (!uival_table_get(AS_TABLE(t), (Value)key, &v)) return false;
-    *out = (apexui_value)v;              // table_get handed us a new reference
+    *out = (apex_ui_value)v;              // table_get handed us a new reference
     return true;
 }
 
 // removes a key; no-op when absent
-void apexui_table_remove(apexui_value t, apexui_value key) {
+void apex_ui_table_remove(apex_ui_value t, apex_ui_value key) {
     if (!IS_TABLE(t)) return;
     uival_table_remove(AS_TABLE(t), (Value)key);
 }
 
 // number of live entries (array part + hash part)
-int apexui_table_size(apexui_value t) {
+int apex_ui_table_size(apex_ui_value t) {
     if (!IS_TABLE(t)) return 0;
     return uival_table_size(AS_TABLE(t));
 }
 
 // snapshot of all keys; free() the array and release each key value
-apexui_value* apexui_table_keys(apexui_value t, int* out_count) {
+apex_ui_value* apex_ui_table_keys(apex_ui_value t, int* out_count) {
     if (out_count) *out_count = 0;
     if (!IS_TABLE(t) || !out_count) return NULL;
     int n = 0;
     Value* keys = uival_table_keys(AS_TABLE(t), &n);   // snapshot holds key references
     if (!keys) return NULL;
     *out_count = n;
-    return (apexui_value*)keys;
+    return (apex_ui_value*)keys;
 }
 
 // set by plain c string key
-bool apexui_table_set_cstr(apexui_value t, const char* key, apexui_value value) {
+bool apex_ui_table_set_cstr(apex_ui_value t, const char* key, apex_ui_value value) {
     if (!IS_TABLE(t) || !key) return false;
     Value k = MAKE_STRING(uival_string_create(key, (int)strlen(key)));
     if (!IS_STRING(k)) return false;
@@ -211,7 +211,7 @@ bool apexui_table_set_cstr(apexui_value t, const char* key, apexui_value value) 
 }
 
 // get by plain c string key; on hit *out receives a new reference
-bool apexui_table_get_cstr(apexui_value t, const char* key, apexui_value* out) {
+bool apex_ui_table_get_cstr(apex_ui_value t, const char* key, apex_ui_value* out) {
     if (!IS_TABLE(t) || !key || !out) return false;
     Value k = MAKE_STRING(uival_string_create(key, (int)strlen(key)));
     if (!IS_STRING(k)) return false;
@@ -219,32 +219,32 @@ bool apexui_table_get_cstr(apexui_value t, const char* key, apexui_value* out) {
     bool ok = uival_table_get(AS_TABLE(t), k, &v);
     uival_value_decref(k);
     if (!ok) return false;
-    *out = (apexui_value)v;
+    *out = (apex_ui_value)v;
     return true;
 }
 
 // set a numeric field by c string key
-bool apexui_table_set_number(apexui_value t, const char* key, double v) {
-    return apexui_table_set_cstr(t, key, MAKE_NUMBER(v));
+bool apex_ui_table_set_number(apex_ui_value t, const char* key, double v) {
+    return apex_ui_table_set_cstr(t, key, MAKE_NUMBER(v));
 }
 
 // set a boolean field by c string key
-bool apexui_table_set_bool(apexui_value t, const char* key, bool v) {
-    return apexui_table_set_cstr(t, key, MAKE_BOOL(v));
+bool apex_ui_table_set_bool(apex_ui_value t, const char* key, bool v) {
+    return apex_ui_table_set_cstr(t, key, MAKE_BOOL(v));
 }
 
 // set a string field by c string key; copies the bytes
-bool apexui_table_set_string(apexui_value t, const char* key, const char* v) {
+bool apex_ui_table_set_string(apex_ui_value t, const char* key, const char* v) {
     Value sv = str_or_none(v);            // fresh string for the value
-    bool ok = apexui_table_set_cstr(t, key, sv);
+    bool ok = apex_ui_table_set_cstr(t, key, sv);
     uival_value_decref(sv);               // the table kept its own reference
     return ok;
 }
 
 // read a numeric field; false on miss or type mismatch
-bool apexui_table_get_number(apexui_value t, const char* key, double* out) {
-    apexui_value v;
-    if (!out || !apexui_table_get_cstr(t, key, &v)) return false;
+bool apex_ui_table_get_number(apex_ui_value t, const char* key, double* out) {
+    apex_ui_value v;
+    if (!out || !apex_ui_table_get_cstr(t, key, &v)) return false;
     if (!IS_NUMBER(v)) { uival_value_decref(v); return false; }
     *out = AS_NUMBER(v);
     uival_value_decref(v);
@@ -252,9 +252,9 @@ bool apexui_table_get_number(apexui_value t, const char* key, double* out) {
 }
 
 // read a boolean field; false on miss or type mismatch
-bool apexui_table_get_bool(apexui_value t, const char* key, bool* out) {
-    apexui_value v;
-    if (!out || !apexui_table_get_cstr(t, key, &v)) return false;
+bool apex_ui_table_get_bool(apex_ui_value t, const char* key, bool* out) {
+    apex_ui_value v;
+    if (!out || !apex_ui_table_get_cstr(t, key, &v)) return false;
     if (!IS_BOOL(v)) { uival_value_decref(v); return false; }
     *out = AS_BOOL(v);
     uival_value_decref(v);
@@ -262,10 +262,10 @@ bool apexui_table_get_bool(apexui_value t, const char* key, bool* out) {
 }
 
 // read a string field; returns a borrowed pointer valid while the table holds it
-bool apexui_table_get_string(apexui_value t, const char* key,
+bool apex_ui_table_get_string(apex_ui_value t, const char* key,
                              const char** out_ptr, int* out_len) {
-    apexui_value v;
-    if (!out_ptr || !apexui_table_get_cstr(t, key, &v)) return false;
+    apex_ui_value v;
+    if (!out_ptr || !apex_ui_table_get_cstr(t, key, &v)) return false;
     if (!IS_STRING(v)) { uival_value_decref(v); return false; }
     StringObject* s = AS_STRING(v);
     *out_ptr = s->chars;                 // borrowed: valid while the table holds it
@@ -275,43 +275,43 @@ bool apexui_table_get_string(apexui_value t, const char* key,
 }
 
 // append a value to the 1-based array part; returns success
-bool apexui_array_push(apexui_value arr, apexui_value v) {
+bool apex_ui_array_push(apex_ui_value arr, apex_ui_value v) {
     if (!IS_TABLE(arr)) return false;
     Table* t = AS_TABLE(arr);
     return uival_table_set_int(t, t->array_count, (Value)v);  // 0-based index == next slot
 }
 
 // fetch a 1-based array element; caller owns the reference, none if out of range
-apexui_value apexui_array_get(apexui_value arr, int index) {
+apex_ui_value apex_ui_array_get(apex_ui_value arr, int index) {
     if (!IS_TABLE(arr) || index < 1) return MAKE_NONE();
     Value v;
     if (!uival_table_get(AS_TABLE(arr), MAKE_NUMBER((double)index), &v)) return MAKE_NONE();
-    return (apexui_value)v;              // caller owns the reference
+    return (apex_ui_value)v;              // caller owns the reference
 }
 
 // length of the 1-based array part
-int apexui_array_count(apexui_value arr) {
+int apex_ui_array_count(apex_ui_value arr) {
     if (!IS_TABLE(arr)) return 0;
     Table* t = AS_TABLE(arr);
     return t->array_part ? t->array_count : 0;
 }
 
 // destroys the context, closing the window if still open
-void apexui_context_destroy(ApexUiContext* ctx) {
-    apexui_context_free((UiContext*)ctx);
+void apex_ui_context_destroy(ApexUIContext* ctx) {
+    apex_ui_context_free((UiContext*)ctx);
 }
 
 // opens the native window from an options table; returns the resulting bool
-apexui_value apexui_init(ApexUiContext* ctx, apexui_value opts) {
+apex_ui_value apex_ui_init(ApexUIContext* ctx, apex_ui_value opts) {
     Value argv[1];
     int argc = 0;
     if (!ctx) return MAKE_BOOL(false);          // null context: no window
     if (IS_TABLE(opts)) { argv[0] = (Value)opts; argc = 1; }
-    return (apexui_value)apexui_impl_init((UiContext*)ctx, argc, argv);
+    return (apex_ui_value)apex_ui_impl_init((UiContext*)ctx, argc, argv);
 }
 
 // value-free window bootstrap; returns false when the window cannot be created
-bool apexui_open(ApexUiContext* ctx, const char* title, int width, int height) {
+bool apex_ui_open(ApexUIContext* ctx, const char* title, int width, int height) {
     Table* t;
     Value argv[1];
     Value out;
@@ -326,67 +326,67 @@ bool apexui_open(ApexUiContext* ctx, const char* title, int width, int height) {
     if (width  > 0) kset(t, "width",  MAKE_NUMBER(width));
     if (height > 0) kset(t, "height", MAKE_NUMBER(height));
     argv[0] = MAKE_TABLE(t);
-    out = apexui_impl_init((UiContext*)ctx, 1, argv);
+    out = apex_ui_impl_init((UiContext*)ctx, 1, argv);
     uival_value_decref(argv[0]);               // drop our table reference
     return IS_BOOL(out) && AS_BOOL(out);
 }
 
-// closes the native window; the context stays usable for a new apexui_init
-void apexui_shutdown(ApexUiContext* ctx) {
-    apexui_impl_shutdown((UiContext*)ctx, 0, NULL);
+// closes the native window; the context stays usable for a new apex_ui_init
+void apex_ui_shutdown(ApexUIContext* ctx) {
+    apex_ui_impl_shutdown((UiContext*)ctx, 0, NULL);
 }
 
 // value-level render: stages a widget descriptor tree for the next repaint
-void apexui_render_value(ApexUiContext* ctx, apexui_value tree) {
+void apex_ui_render_value(ApexUIContext* ctx, apex_ui_value tree) {
     Value argv[1];
     argv[0] = (Value)tree;               // impl retains heap-tagged trees
-    apexui_impl_render((UiContext*)ctx, 1, argv);
+    apex_ui_impl_render((UiContext*)ctx, 1, argv);
 }
 
 // blocks until the next event and returns it as a table
-apexui_value apexui_next_event(ApexUiContext* ctx) {
-    return (apexui_value)apexui_impl_next_event((UiContext*)ctx, 0, NULL);
+apex_ui_value apex_ui_next_event(ApexUIContext* ctx) {
+    return (apex_ui_value)apex_ui_impl_next_event((UiContext*)ctx, 0, NULL);
 }
 
 // drives the message loop with batched repaints until the window closes
-apexui_value apexui_run(ApexUiContext* ctx, apexui_run_fn fn, void* user) {
+apex_ui_value apex_ui_run(ApexUIContext* ctx, apex_ui_run_fn fn, void* user) {
     ui_run_loop((UiContext*)ctx, fn, user);
     return MAKE_NONE();
 }
 
 // sets the native window title and mirrors it for the custom titlebar
-void apexui_set_title(ApexUiContext* ctx, const char* title) {
+void apex_ui_set_title(ApexUIContext* ctx, const char* title) {
     if (!title) return;
     Value v = MAKE_STRING(uival_string_create(title, (int)strlen(title)));
     if (!IS_STRING(v)) return;
-    apexui_impl_set_title((UiContext*)ctx, 1, &v);
+    apex_ui_impl_set_title((UiContext*)ctx, 1, &v);
     uival_value_decref(v);
 }
 
 // current client area size as a {w, h} table
-apexui_value apexui_window_size(ApexUiContext* ctx) {
-    return (apexui_value)apexui_impl_window_size((UiContext*)ctx, 0, NULL);
+apex_ui_value apex_ui_window_size(ApexUIContext* ctx) {
+    return (apex_ui_value)apex_ui_impl_window_size((UiContext*)ctx, 0, NULL);
 }
 
 // native "open file" picker; returns the picked path or none
-apexui_value apexui_open_file(ApexUiContext* ctx, apexui_value opts) {
+apex_ui_value apex_ui_open_file(ApexUIContext* ctx, apex_ui_value opts) {
     Value argv[1];
     int argc = 0;
     if (IS_TABLE(opts)) { argv[0] = (Value)opts; argc = 1; }
-    return (apexui_value)apexui_impl_open_file((UiContext*)ctx, argc, argv);
+    return (apex_ui_value)apex_ui_impl_open_file((UiContext*)ctx, argc, argv);
 }
 
 // native "open folder" picker; returns the picked path or none
-apexui_value apexui_open_folder(ApexUiContext* ctx, apexui_value opts) {
+apex_ui_value apex_ui_open_folder(ApexUIContext* ctx, apex_ui_value opts) {
     Value argv[1];
     int argc = 0;
     if (IS_TABLE(opts)) { argv[0] = (Value)opts; argc = 1; }
-    return (apexui_value)apexui_impl_open_folder((UiContext*)ctx, argc, argv);
+    return (apex_ui_value)apex_ui_impl_open_folder((UiContext*)ctx, argc, argv);
 }
 
 // native "save file" picker; writes the content and returns the path or none
-apexui_value apexui_save_as(ApexUiContext* ctx, const char* content,
-                            int content_len, apexui_value opts) {
+apex_ui_value apex_ui_save_as(ApexUIContext* ctx, const char* content,
+                            int content_len, apex_ui_value opts) {
     if (!content) { content = ""; content_len = 0; }
     if (content_len < 0) content_len = (int)strlen(content);
     Value argv[2];
@@ -394,29 +394,29 @@ apexui_value apexui_save_as(ApexUiContext* ctx, const char* content,
     if (!IS_STRING(argv[0])) return MAKE_NONE();
     int argc = 1;
     if (IS_TABLE(opts)) { argv[1] = (Value)opts; argc = 2; }
-    Value out = apexui_impl_save_as((UiContext*)ctx, argc, argv);
+    Value out = apex_ui_impl_save_as((UiContext*)ctx, argc, argv);
     uival_value_decref(argv[0]);               // release the local content copy
-    return (apexui_value)out;
+    return (apex_ui_value)out;
 }
 
 // set the window's fullscreen state; returns the resulting state
-bool apexui_set_fullscreen(ApexUiContext* ctx, bool enable) {
+bool apex_ui_set_fullscreen(ApexUIContext* ctx, bool enable) {
     Value argv[1];
     argv[0] = MAKE_BOOL(enable);
-    Value out = apexui_impl_fullscreen((UiContext*)ctx, 1, argv);
+    Value out = apex_ui_impl_fullscreen((UiContext*)ctx, 1, argv);
     bool res = IS_BOOL(out) && AS_BOOL(out);
     return res;
 }
 
 // flip the window's fullscreen state; returns the resulting state
-bool apexui_toggle_fullscreen(ApexUiContext* ctx) {
-    Value out = apexui_impl_fullscreen((UiContext*)ctx, 0, NULL);
+bool apex_ui_toggle_fullscreen(ApexUIContext* ctx) {
+    Value out = apex_ui_impl_fullscreen((UiContext*)ctx, 0, NULL);
     bool res = IS_BOOL(out) && AS_BOOL(out);
     return res;
 }
 
 // open a modal dialog from a descriptor table
-void apexui_dialog(ApexUiContext* ctx, apexui_value descr) {
+void apex_ui_dialog(ApexUIContext* ctx, apex_ui_value descr) {
     UiContext* c = (UiContext*)ctx;
     if (!c || !IS_TABLE(descr)) return;  // descriptor table required
 
@@ -485,7 +485,7 @@ void apexui_dialog(ApexUiContext* ctx, apexui_value descr) {
 }
 
 // show a desktop notification popup from a descriptor table
-void apexui_notification(ApexUiContext* ctx, apexui_value descr) {
+void apex_ui_notification(ApexUIContext* ctx, apex_ui_value descr) {
     UiContext* c = (UiContext*)ctx;
     if (!c || !IS_TABLE(descr)) return;
 
@@ -506,7 +506,7 @@ void apexui_notification(ApexUiContext* ctx, apexui_value descr) {
 }
 
 // install or clear the window menu bar from a descriptor array
-void apexui_menubar(ApexUiContext* ctx, apexui_value descr) {
+void apex_ui_menubar(ApexUIContext* ctx, apex_ui_value descr) {
     UiContext* c = (UiContext*)ctx;
     if (!c) return;
     if (IS_TABLE(descr)) {
@@ -519,7 +519,7 @@ void apexui_menubar(ApexUiContext* ctx, apexui_value descr) {
 }
 
 // open a context menu at the current cursor position
-void apexui_context_menu_open(ApexUiContext* ctx, apexui_value items) {
+void apex_ui_context_menu_open(ApexUIContext* ctx, apex_ui_value items) {
     UiContext* c = (UiContext*)ctx;
     if (!c) return;
     if (!IS_TABLE(items)) {
@@ -530,7 +530,7 @@ void apexui_context_menu_open(ApexUiContext* ctx, apexui_value items) {
 }
 
 // open a context menu at explicit coordinates
-void apexui_context_menu_open_at(ApexUiContext* ctx, apexui_value items, int x, int y) {
+void apex_ui_context_menu_open_at(ApexUIContext* ctx, apex_ui_value items, int x, int y) {
     UiContext* c = (UiContext*)ctx;
     if (!c) return;
     if (!IS_TABLE(items)) {
@@ -541,14 +541,14 @@ void apexui_context_menu_open_at(ApexUiContext* ctx, apexui_value items, int x, 
 }
 
 // close any open context menu
-void apexui_context_menu_close(ApexUiContext* ctx) {
+void apex_ui_context_menu_close(ApexUIContext* ctx) {
     UiContext* c = (UiContext*)ctx;
     if (!c) return;
     ui_context_menu_close(c);
 }
 
 // table of named key / modifier constants
-apexui_value apexui_key_constants(void) {
+apex_ui_value apex_ui_key_constants(void) {
     Table* t = uival_table_create(32);
     if (!t) return MAKE_NONE();
     kset(t, "esc",       MAKE_NUMBER((double)UI_KEY_ESCAPE));
@@ -585,21 +585,21 @@ apexui_value apexui_key_constants(void) {
 }
 
 // registers a freshly built descriptor with the context staging arena
-static ApexuiNode* node_track(UiContext* c, Value descr) {
+static ApexUINode* node_track(UiContext* c, Value descr) {
     if (!c) { uival_value_decref(descr); return NULL; }    // null context: no node
     if (!IS_TABLE(descr)) return NULL;
-    ApexuiNode* n = c->node_free;                           // recycle a parked node
+    ApexUINode* n = c->node_free;                           // recycle a parked node
     if (n) {
         c->node_free = n->next_free;                       // pop from the free list
     } else {
-        n = (ApexuiNode*)malloc(sizeof(ApexuiNode));
+        n = (ApexUINode*)malloc(sizeof(ApexUINode));
         if (!n) { uival_value_decref(descr); return NULL; } // oom: drop the descriptor
     }
     n->descr = descr;
     if (c->node_count >= c->node_cap) {                     // grow the pointer array
         int cap = c->node_cap ? c->node_cap * 2 : 16;
-        ApexuiNode** nl = (ApexuiNode**)realloc(c->node_list,
-                           sizeof(ApexuiNode*) * (size_t)cap);
+        ApexUINode** nl = (ApexUINode**)realloc(c->node_list,
+                           sizeof(ApexUINode*) * (size_t)cap);
         if (!nl) {
             if ((n->descr & QNAN) == QNAN) uival_value_decref(n->descr);
             n->descr = MAKE_NONE();
@@ -618,7 +618,7 @@ static ApexuiNode* node_track(UiContext* c, Value descr) {
 void ui_nodes_release_all(UiContext* c) {
     if (!c) return;
     for (int i = 0; i < c->node_count; i++) {
-        ApexuiNode* n = c->node_list[i];
+        ApexUINode* n = c->node_list[i];
         if ((n->descr & QNAN) == QNAN) uival_value_decref(n->descr);
         n->descr = MAKE_NONE();         // a stale handle now renders nothing
         n->next_free = c->node_free;    // park the struct for reuse
@@ -628,7 +628,7 @@ void ui_nodes_release_all(UiContext* c) {
 }
 
 // converts widget options into an opts table value; none when nothing is set
-static Value opts_to_table(ApexuiOpts o) {
+static Value opts_to_table(ApexUIOpts o) {
     bool any = o.id || o.css_class ||
                o.width != 0.0 || o.height != 0.0 || o.disabled || o.checked;
     if (!any) return MAKE_NONE();
@@ -652,8 +652,8 @@ static Value opts_to_table(ApexuiOpts o) {
 }
 
 // builds and stages a leaf descriptor of the given kind
-static ApexuiNode* node_leaf(UiContext* c, const char* type,
-                             const char* content, ApexuiOpts opts) {
+static ApexUINode* node_leaf(UiContext* c, const char* type,
+                             const char* content, ApexUIOpts opts) {
     Value cv = str_or_none(content);
     Value ov = opts_to_table(opts);
     Value d = make_leaf(type, cv, ov);
@@ -663,9 +663,9 @@ static ApexuiNode* node_leaf(UiContext* c, const char* type,
 }
 
 // builds and stages a container descriptor from live node handles
-static ApexuiNode* node_container(UiContext* c, const char* type,
-                                  ApexuiNode* const* kids, size_t n,
-                                  ApexuiOpts opts, bool stretch) {
+static ApexUINode* node_container(UiContext* c, const char* type,
+                                  ApexUINode* const* kids, size_t n,
+                                  ApexUIOpts opts, bool stretch) {
     Value ov = opts_to_table(opts);
     Table* arr = NULL;
     if (kids && n > 0) {
@@ -687,47 +687,47 @@ static ApexuiNode* node_container(UiContext* c, const char* type,
 }
 
 // a push button with a text label
-ApexuiNode* apexui_button(ApexUiContext* ctx, const char* label) {
-    return node_leaf((UiContext*)ctx, "button", label, (ApexuiOpts){0});
+ApexUINode* apex_ui_button(ApexUIContext* ctx, const char* label) {
+    return node_leaf((UiContext*)ctx, "button", label, (ApexUIOpts){0});
 }
 
 // a push button with a text label and options
-ApexuiNode* apexui_button_ex(ApexUiContext* ctx, const char* label, ApexuiOpts opts) {
+ApexUINode* apex_ui_button_ex(ApexUIContext* ctx, const char* label, ApexUIOpts opts) {
     return node_leaf((UiContext*)ctx, "button", label, opts);
 }
 
 // a line of body text
-ApexuiNode* apexui_label(ApexUiContext* ctx, const char* text) {
-    return node_leaf((UiContext*)ctx, "text", text, (ApexuiOpts){0});
+ApexUINode* apex_ui_label(ApexUIContext* ctx, const char* text) {
+    return node_leaf((UiContext*)ctx, "text", text, (ApexUIOpts){0});
 }
 
 // a line of body text with options
-ApexuiNode* apexui_label_ex(ApexUiContext* ctx, const char* text, ApexuiOpts opts) {
+ApexUINode* apex_ui_label_ex(ApexUIContext* ctx, const char* text, ApexUIOpts opts) {
     return node_leaf((UiContext*)ctx, "text", text, opts);
 }
 
 // a line of heading text
-ApexuiNode* apexui_heading(ApexUiContext* ctx, const char* text) {
-    return node_leaf((UiContext*)ctx, "heading", text, (ApexuiOpts){0});
+ApexUINode* apex_ui_heading(ApexUIContext* ctx, const char* text) {
+    return node_leaf((UiContext*)ctx, "heading", text, (ApexUIOpts){0});
 }
 
 // a line of heading text with options
-ApexuiNode* apexui_heading_ex(ApexUiContext* ctx, const char* text, ApexuiOpts opts) {
+ApexUINode* apex_ui_heading_ex(ApexUIContext* ctx, const char* text, ApexUIOpts opts) {
     return node_leaf((UiContext*)ctx, "heading", text, opts);
 }
 
 // a horizontal rule
-ApexuiNode* apexui_separator(ApexUiContext* ctx) {
-    return node_leaf((UiContext*)ctx, "separator", NULL, (ApexuiOpts){0});
+ApexUINode* apex_ui_separator(ApexUIContext* ctx) {
+    return node_leaf((UiContext*)ctx, "separator", NULL, (ApexUIOpts){0});
 }
 
 // a horizontal rule with options
-ApexuiNode* apexui_separator_ex(ApexUiContext* ctx, ApexuiOpts opts) {
+ApexUINode* apex_ui_separator_ex(ApexUIContext* ctx, ApexUIOpts opts) {
     return node_leaf((UiContext*)ctx, "separator", NULL, opts);
 }
 
 // spacer: a flexible gap, or a fixed-size gap when opts.width / height are set
-static ApexuiNode* node_spacer(UiContext* c, ApexuiOpts opts) {
+static ApexUINode* node_spacer(UiContext* c, ApexUIOpts opts) {
     Value ov = opts_to_table(opts);
     Table* t = uival_table_create(8);
     if (!t) { uival_value_decref(ov); return NULL; }
@@ -745,27 +745,27 @@ static ApexuiNode* node_spacer(UiContext* c, ApexuiOpts opts) {
 }
 
 // a flexible gap
-ApexuiNode* apexui_spacer(ApexUiContext* ctx) {
-    return node_spacer((UiContext*)ctx, (ApexuiOpts){0});
+ApexUINode* apex_ui_spacer(ApexUIContext* ctx) {
+    return node_spacer((UiContext*)ctx, (ApexUIOpts){0});
 }
 
 // a fixed-size gap via opts.width / opts.height
-ApexuiNode* apexui_spacer_ex(ApexUiContext* ctx, ApexuiOpts opts) {
+ApexUINode* apex_ui_spacer_ex(ApexUIContext* ctx, ApexUIOpts opts) {
     return node_spacer((UiContext*)ctx, opts);
 }
 
 // a checkbox with a text label
-ApexuiNode* apexui_checkbox(ApexUiContext* ctx, const char* label) {
-    return node_leaf((UiContext*)ctx, "checkbox", label, (ApexuiOpts){0});
+ApexUINode* apex_ui_checkbox(ApexUIContext* ctx, const char* label) {
+    return node_leaf((UiContext*)ctx, "checkbox", label, (ApexUIOpts){0});
 }
 
 // a checkbox with a text label and options; opts.checked sets the initial state
-ApexuiNode* apexui_checkbox_ex(ApexUiContext* ctx, const char* label, ApexuiOpts opts) {
+ApexUINode* apex_ui_checkbox_ex(ApexUIContext* ctx, const char* label, ApexUIOpts opts) {
     return node_leaf((UiContext*)ctx, "checkbox", label, opts);  // opts.checked flows through
 }
 
 // input: the text is the initial content of the field
-static ApexuiNode* node_input(UiContext* c, const char* text, ApexuiOpts opts) {
+static ApexUINode* node_input(UiContext* c, const char* text, ApexUIOpts opts) {
     Value cv = str_or_none(text);
     Value ov = opts_to_table(opts);
     Value d = make_leaf("input", cv, ov);
@@ -776,19 +776,19 @@ static ApexuiNode* node_input(UiContext* c, const char* text, ApexuiOpts opts) {
 }
 
 // a single-line text input
-ApexuiNode* apexui_input(ApexUiContext* ctx, const char* text) {
-    return node_input((UiContext*)ctx, text, (ApexuiOpts){0});
+ApexUINode* apex_ui_input(ApexUIContext* ctx, const char* text) {
+    return node_input((UiContext*)ctx, text, (ApexUIOpts){0});
 }
 
 // a single-line text input with options
-ApexuiNode* apexui_input_ex(ApexUiContext* ctx, const char* text, ApexuiOpts opts) {
+ApexUINode* apex_ui_input_ex(ApexUIContext* ctx, const char* text, ApexUIOpts opts) {
     return node_input((UiContext*)ctx, text, opts);
 }
 
 // dropdown: selected is the shown label, items the n selectable labels
-static ApexuiNode* node_dropdown(UiContext* c, const char* selected,
+static ApexUINode* node_dropdown(UiContext* c, const char* selected,
                                  const char* const* items, size_t n,
-                                 ApexuiOpts opts) {
+                                 ApexUIOpts opts) {
     Value sv = str_or_none(selected);
     Value ov = opts_to_table(opts);
     Value d = make_leaf("dropdown", sv, ov);
@@ -819,51 +819,51 @@ static ApexuiNode* node_dropdown(UiContext* c, const char* selected,
 }
 
 // a dropdown showing `selected` with the given items
-ApexuiNode* apexui_dropdown(ApexUiContext* ctx, const char* selected,
+ApexUINode* apex_ui_dropdown(ApexUIContext* ctx, const char* selected,
                             const char* const* items, size_t n) {
-    return node_dropdown((UiContext*)ctx, selected, items, n, (ApexuiOpts){0});
+    return node_dropdown((UiContext*)ctx, selected, items, n, (ApexUIOpts){0});
 }
 
 // a dropdown showing `selected` with the given items and options
-ApexuiNode* apexui_dropdown_ex(ApexUiContext* ctx, const char* selected,
-                               const char* const* items, size_t n, ApexuiOpts opts) {
+ApexUINode* apex_ui_dropdown_ex(ApexUIContext* ctx, const char* selected,
+                               const char* const* items, size_t n, ApexUIOpts opts) {
     return node_dropdown((UiContext*)ctx, selected, items, n, opts);
 }
 
 // a vertical stack of children
-ApexuiNode* apexui_column(ApexUiContext* ctx, ApexuiNode* const* kids, size_t n) {
-    return node_container((UiContext*)ctx, "vbox", kids, n, (ApexuiOpts){0}, false);
+ApexUINode* apex_ui_column(ApexUIContext* ctx, ApexUINode* const* kids, size_t n) {
+    return node_container((UiContext*)ctx, "vbox", kids, n, (ApexUIOpts){0}, false);
 }
 
 // a vertical stack of children with options
-ApexuiNode* apexui_column_ex(ApexUiContext* ctx, ApexuiNode* const* kids,
-                             size_t n, ApexuiOpts opts) {
+ApexUINode* apex_ui_column_ex(ApexUIContext* ctx, ApexUINode* const* kids,
+                             size_t n, ApexUIOpts opts) {
     return node_container((UiContext*)ctx, "vbox", kids, n, opts, false);
 }
 
 // a horizontal row of children
-ApexuiNode* apexui_row(ApexUiContext* ctx, ApexuiNode* const* kids, size_t n) {
-    return node_container((UiContext*)ctx, "hbox", kids, n, (ApexuiOpts){0}, false);
+ApexUINode* apex_ui_row(ApexUIContext* ctx, ApexUINode* const* kids, size_t n) {
+    return node_container((UiContext*)ctx, "hbox", kids, n, (ApexUIOpts){0}, false);
 }
 
 // a horizontal row of children with options
-ApexuiNode* apexui_row_ex(ApexUiContext* ctx, ApexuiNode* const* kids,
-                          size_t n, ApexuiOpts opts) {
+ApexUINode* apex_ui_row_ex(ApexUIContext* ctx, ApexUINode* const* kids,
+                          size_t n, ApexUIOpts opts) {
     return node_container((UiContext*)ctx, "hbox", kids, n, opts, false);
 }
 
 // grid: composes the children row-major into `cols` equal-weight columns
-static ApexuiNode* node_grid(UiContext* c, int cols,
-                             ApexuiNode* const* kids, size_t n, ApexuiOpts opts) {
+static ApexUINode* node_grid(UiContext* c, int cols,
+                             ApexUINode* const* kids, size_t n, ApexUIOpts opts) {
     if (cols < 1) cols = 1;
     if (n == 0) return node_container(c, "hbox", NULL, 0, opts, false);
 
     size_t rows = (n + (size_t)cols - 1) / (size_t)cols;
-    ApexuiNode** buf = (ApexuiNode**)malloc(sizeof(ApexuiNode*) *
+    ApexUINode** buf = (ApexUINode**)malloc(sizeof(ApexUINode*) *
                                             (rows + (size_t)cols));
     if (!buf) return NULL;
-    ApexuiNode** col_kids = buf;                    // scratch: one column of kids
-    ApexuiNode** col_nodes = buf + rows;            // the cols column handles
+    ApexUINode** col_kids = buf;                    // scratch: one column of kids
+    ApexUINode** col_nodes = buf + rows;            // the cols column handles
     int made = 0;
 
     for (int cix = 0; cix < cols; cix++) {
@@ -871,39 +871,39 @@ static ApexuiNode* node_grid(UiContext* c, int cols,
         for (size_t i = (size_t)cix; i < n; i += (size_t)cols)
             if (kids[i] && IS_TABLE(kids[i]->descr)) col_kids[cnt++] = kids[i];
         col_nodes[made] = node_container(c, "vbox", cnt ? col_kids : NULL, cnt,
-                                         (ApexuiOpts){0}, true);
+                                         (ApexUIOpts){0}, true);
         if (!col_nodes[made]) { free(buf); return NULL; }
         made++;
     }
 
-    ApexuiNode* row = node_container(c, "hbox", col_nodes, (size_t)made, opts, false);
+    ApexUINode* row = node_container(c, "hbox", col_nodes, (size_t)made, opts, false);
     free(buf);
     return row;
 }
 
 // a row-major grid laid out into `cols` equal-width columns
-ApexuiNode* apexui_grid(ApexUiContext* ctx, int cols, ApexuiNode* const* kids, size_t n) {
-    return node_grid((UiContext*)ctx, cols, kids, n, (ApexuiOpts){0});
+ApexUINode* apex_ui_grid(ApexUIContext* ctx, int cols, ApexUINode* const* kids, size_t n) {
+    return node_grid((UiContext*)ctx, cols, kids, n, (ApexUIOpts){0});
 }
 
 // a row-major grid laid out into `cols` equal-width columns with options
-ApexuiNode* apexui_grid_ex(ApexUiContext* ctx, int cols, ApexuiNode* const* kids,
-                           size_t n, ApexuiOpts opts) {
+ApexUINode* apex_ui_grid_ex(ApexUIContext* ctx, int cols, ApexUINode* const* kids,
+                           size_t n, ApexUIOpts opts) {
     return node_grid((UiContext*)ctx, cols, kids, n, opts);
 }
 
 // atomically commits a new tree from the given roots and releases every staged node
-void apexui_render(ApexUiContext* ctx, ApexuiNode* const* roots, size_t n) {
+void apex_ui_render(ApexUIContext* ctx, ApexUINode* const* roots, size_t n) {
     UiContext* c = (UiContext*)ctx;
     if (!c) return;
     if (!roots || n == 0) {                 // nothing to show: clear the window
-        apexui_clear(ctx);
+        apex_ui_clear(ctx);
         return;
     }
     if (n == 1) {                           // single root: hand the descriptor
         Value d = (roots[0] && IS_TABLE(roots[0]->descr)) ? roots[0]->descr
                                                           : MAKE_NONE();
-        apexui_impl_render(c, 1, &d);       // impl retains heap-tagged trees
+        apex_ui_impl_render(c, 1, &d);       // impl retains heap-tagged trees
     } else {                                // multiple roots: a 1-based array
         Table* arr = uival_table_create(n > 64 ? 64 : (int)n);
         if (!arr) { ui_nodes_release_all(c); return; }   // oom: keep the old tree
@@ -912,33 +912,33 @@ void apexui_render(ApexUiContext* ctx, ApexuiNode* const* roots, size_t n) {
             if (roots[i] && IS_TABLE(roots[i]->descr))
                 uival_table_set_int(arr, m++, roots[i]->descr);
         Value v = MAKE_TABLE(arr);
-        apexui_impl_render(c, 1, &v);
+        apex_ui_impl_render(c, 1, &v);
         uival_value_decref(v);
     }
     ui_nodes_release_all(c);                // the handles are consumed
 }
 
 // commits a single-root tree
-void apexui_render_one(ApexUiContext* ctx, ApexuiNode* root) {
-    apexui_render(ctx, &root, 1);
+void apex_ui_render_one(ApexUIContext* ctx, ApexUINode* root) {
+    apex_ui_render(ctx, &root, 1);
 }
 
 // releases the staged nodes and the committed tree without rendering
-void apexui_clear(ApexUiContext* ctx) {
+void apex_ui_clear(ApexUIContext* ctx) {
     UiContext* c = (UiContext*)ctx;
     if (!c) return;
     ui_nodes_release_all(c);                // drop staged handles
     Value none = MAKE_NONE();
-    apexui_impl_render(c, 1, &none);        // drop the committed tree
+    apex_ui_impl_render(c, 1, &none);        // drop the committed tree
 }
 
 // an event handed to the handler: the wrapped table lives for the callback
-struct ApexuiEvent {
+struct ApexUIEvent {
     Value table;
 };
 
 // pumps the window once and hands every queued event to the handler in order
-void apexui_poll_events(ApexUiContext* ctx, ApexuiHandler handler, void* userdata) {
+void apex_ui_poll_events(ApexUIContext* ctx, ApexUIHandler handler, void* userdata) {
     UiContext* c = (UiContext*)ctx;
     if (!c || !handler) return;
 
@@ -946,14 +946,14 @@ void apexui_poll_events(ApexUiContext* ctx, ApexuiHandler handler, void* userdat
         rebuild_and_draw(c);                // honour a render() made before polling
 
     if (c->window)
-        apexui_pump(c);                     // translate native events into the queue
+        apex_ui_pump(c);                     // translate native events into the queue
 
     UiEvent ue;
     while (ui_event_pop(c, &ue)) {
         Value tbl = ui_event_to_table(c, &ue);
         free(ue.str_value);                 // release the owned string payload
         if (IS_TABLE(tbl)) {
-            ApexuiEvent ev;
+            ApexUIEvent ev;
             ev.table = tbl;
             handler(&ev, userdata);         // framework owns the event
             uival_value_decref(tbl);
@@ -966,29 +966,29 @@ void apexui_poll_events(ApexUiContext* ctx, ApexuiHandler handler, void* userdat
 }
 
 // reads a string field of the event table; borrowed pointer or null
-static const char* event_str_field(const ApexuiEvent* ev, const char* key) {
+static const char* event_str_field(const ApexUIEvent* ev, const char* key) {
     if (!ev || !key || !IS_TABLE(ev->table)) return NULL;
     const char* ptr;
     int len;
-    if (!apexui_table_get_string(ev->table, key, &ptr, &len)) return NULL;
+    if (!apex_ui_table_get_string(ev->table, key, &ptr, &len)) return NULL;
     return ptr;
 }
 
 // event kind: "click", "change", "key", "close", ... or null
-const char* apexui_event_type(const ApexuiEvent* ev) {
+const char* apex_ui_event_type(const ApexUIEvent* ev) {
     return event_str_field(ev, "type");
 }
 
 // identity (opts.id) of the widget that produced the event; "" when it has none
-const char* apexui_event_id(const ApexuiEvent* ev) {
+const char* apex_ui_event_id(const ApexUIEvent* ev) {
     return event_str_field(ev, "key");      // the opts.id the widget was built with
 }
 
 // numeric field lookup; booleans read as 1.0 / 0.0, misses as 0.0
-double apexui_event_num(const ApexuiEvent* ev, const char* key) {
+double apex_ui_event_num(const ApexUIEvent* ev, const char* key) {
     if (!ev || !key || !IS_TABLE(ev->table)) return 0.0;
-    apexui_value v;
-    if (!apexui_table_get_cstr(ev->table, key, &v)) return 0.0;
+    apex_ui_value v;
+    if (!apex_ui_table_get_cstr(ev->table, key, &v)) return 0.0;
     double r = 0.0;
     if (IS_NUMBER(v))      r = AS_NUMBER(v);
     else if (IS_BOOL(v))   r = AS_BOOL(v) ? 1.0 : 0.0;   // booleans read as 0 / 1
@@ -997,7 +997,7 @@ double apexui_event_num(const ApexuiEvent* ev, const char* key) {
 }
 
 // string field lookup; borrowed pointer, null on a miss
-const char* apexui_event_str(const ApexuiEvent* ev, const char* key) {
+const char* apex_ui_event_str(const ApexUIEvent* ev, const char* key) {
     return event_str_field(ev, key);
 }
 
@@ -1105,31 +1105,31 @@ static Value ctor_spacer_argv(int argc, Value* argv) {
 }
 
 // name-based dispatcher over the value layer ("ui.button", "ui.init", ...)
-bool apexui_call(ApexUiContext* ctx, const char* name,
-                 int argc, const apexui_value* args, apexui_value* result) {
+bool apex_ui_call(ApexUIContext* ctx, const char* name,
+                 int argc, const apex_ui_value* args, apex_ui_value* result) {
     UiContext* c = (UiContext*)ctx;
     Value* argv = (Value*)args;
     Value r = MAKE_NONE();
 
     if (!name || !result) return false;
 
-    if (strcmp(name, "ui.key") == 0)               { r = (Value)apexui_key_constants(); }
-    else if (strcmp(name, "ui.init") == 0)         { r = (Value)apexui_init(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); }
-    else if (strcmp(name, "ui.shutdown") == 0)     { apexui_shutdown(ctx); r = MAKE_NONE(); }
-    else if (strcmp(name, "ui.render") == 0)       { apexui_render_value(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); r = MAKE_NONE(); }
-    else if (strcmp(name, "ui.next_event") == 0)   { r = (Value)apexui_next_event(ctx); }
-    else if (strcmp(name, "ui.run") == 0)          { return false; }  // needs a host callback: use apexui_run
+    if (strcmp(name, "ui.key") == 0)               { r = (Value)apex_ui_key_constants(); }
+    else if (strcmp(name, "ui.init") == 0)         { r = (Value)apex_ui_init(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); }
+    else if (strcmp(name, "ui.shutdown") == 0)     { apex_ui_shutdown(ctx); r = MAKE_NONE(); }
+    else if (strcmp(name, "ui.render") == 0)       { apex_ui_render_value(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); r = MAKE_NONE(); }
+    else if (strcmp(name, "ui.next_event") == 0)   { r = (Value)apex_ui_next_event(ctx); }
+    else if (strcmp(name, "ui.run") == 0)          { return false; }  // needs a host callback: use apex_ui_run
     else if (strcmp(name, "ui.set_title") == 0)    {
-        if (argc >= 1 && IS_STRING(argv[0])) apexui_set_title(ctx, AS_STRING(argv[0])->chars);
+        if (argc >= 1 && IS_STRING(argv[0])) apex_ui_set_title(ctx, AS_STRING(argv[0])->chars);
         r = MAKE_NONE();
     }
-    else if (strcmp(name, "ui.window_size") == 0)  { r = (Value)apexui_window_size(ctx); }
-    else if (strcmp(name, "ui.open_file") == 0)    { r = (Value)apexui_open_file(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); }
-    else if (strcmp(name, "ui.open_folder") == 0)  { r = (Value)apexui_open_folder(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); }
+    else if (strcmp(name, "ui.window_size") == 0)  { r = (Value)apex_ui_window_size(ctx); }
+    else if (strcmp(name, "ui.open_file") == 0)    { r = (Value)apex_ui_open_file(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); }
+    else if (strcmp(name, "ui.open_folder") == 0)  { r = (Value)apex_ui_open_folder(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); }
     else if (strcmp(name, "ui.save_as") == 0)      {
         if (argc >= 1 && IS_STRING(argv[0])) {
             StringObject* s = AS_STRING(argv[0]);
-            r = (Value)apexui_save_as(ctx, s->chars, s->length,
+            r = (Value)apex_ui_save_as(ctx, s->chars, s->length,
                                       argc >= 2 ? argv[1] : MAKE_NONE());
         } else {
             r = MAKE_NONE();
@@ -1137,13 +1137,13 @@ bool apexui_call(ApexUiContext* ctx, const char* name,
     }
     else if (strcmp(name, "ui.fullscreen") == 0)   {
         bool want = (argc >= 1 && IS_BOOL(argv[0]))
-                        ? apexui_set_fullscreen(ctx, AS_BOOL(argv[0]))
-                        : apexui_toggle_fullscreen(ctx);
+                        ? apex_ui_set_fullscreen(ctx, AS_BOOL(argv[0]))
+                        : apex_ui_toggle_fullscreen(ctx);
         r = MAKE_BOOL(want);
     }
-    else if (strcmp(name, "ui.dialog") == 0)       { apexui_dialog(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); r = MAKE_NONE(); }
-    else if (strcmp(name, "ui.notification") == 0) { apexui_notification(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); r = MAKE_NONE(); }
-    else if (strcmp(name, "ui.menubar") == 0)      { apexui_menubar(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); r = MAKE_NONE(); }
+    else if (strcmp(name, "ui.dialog") == 0)       { apex_ui_dialog(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); r = MAKE_NONE(); }
+    else if (strcmp(name, "ui.notification") == 0) { apex_ui_notification(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); r = MAKE_NONE(); }
+    else if (strcmp(name, "ui.menubar") == 0)      { apex_ui_menubar(ctx, argc >= 1 ? argv[0] : MAKE_NONE()); r = MAKE_NONE(); }
     else if (strcmp(name, "ui.context_menu") == 0) {
         if (argc < 1 || !IS_TABLE(argv[0])) {
             ui_context_menu_close(c);
@@ -1178,6 +1178,6 @@ bool apexui_call(ApexUiContext* ctx, const char* name,
 
     else { return false; }               // not a ui builtin
 
-    *result = (apexui_value)r;           // caller owns the reference
+    *result = (apex_ui_value)r;           // caller owns the reference
     return true;
 }

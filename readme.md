@@ -52,12 +52,12 @@ Installs `apex_ui.h/hpp` into `include/` and the library into `lib/`.
 #include <cstring>
 
 int main() {
-    ApexUiContext* ctx = apexui_context_create();
+    ApexUIContext* ctx = apex_ui_context_create();
     if (!ctx) return 1;
 
     apex::Ui ui(ctx);
     if (!ui.open("Apex UI", 320, 200)) {
-        apexui_context_destroy(ctx);
+        apex_ui_context_destroy(ctx);
         return 1;
     }
 
@@ -70,8 +70,8 @@ int main() {
                 running = false;
         });
 
-    apexui_shutdown(ctx);
-    apexui_context_destroy(ctx);
+    apex_ui_shutdown(ctx);
+    apex_ui_context_destroy(ctx);
     return 0;
 }
 ```
@@ -80,7 +80,7 @@ The same `main()` runs on Android as-is: `ui.open()` adopts the screen
 size instead of asking for one, and the backend feeds touch input and the
 system clipboard through the same event queue.
 
-For a batched message loop with a host callback, use `apexui_run` — the
+For a batched message loop with a host callback, use `apex_ui_run` — the
 callback receives each event table and returns the widget tree to render
 for the next frame.
 

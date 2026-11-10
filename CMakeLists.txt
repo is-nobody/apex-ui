@@ -71,7 +71,7 @@ set(APEXUI_SOURCES
     apex_ui.c
     apex_ui.cpp
 
-    source/common/apexui_value.c
+    source/common/apex_ui_value.c
     source/common/ui_hash.c
     source/common/ui_arena.c
     source/common/ui_table.c
@@ -111,14 +111,14 @@ set(APEXUI_SOURCES
 )
 
 if(APEXUI_BUILD_SHARED)
-    add_library(apexui SHARED ${APEXUI_SOURCES} ${APEXUI_WINDOW_SOURCES})
-    set_target_properties(apexui PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR})
+    add_library(apex-ui SHARED ${APEXUI_SOURCES} ${APEXUI_WINDOW_SOURCES})
+    set_target_properties(apex-ui PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR})
 else()
-    add_library(apexui STATIC ${APEXUI_SOURCES} ${APEXUI_WINDOW_SOURCES})
+    add_library(apex-ui STATIC ${APEXUI_SOURCES} ${APEXUI_WINDOW_SOURCES})
 endif()
 
 # apex_ui.h is the public header; internal headers stay private to the library
-target_include_directories(apexui
+target_include_directories(apex-ui
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
@@ -141,7 +141,7 @@ set(BASE_FLAGS -Wall -Wextra -D_DEFAULT_SOURCE)
 
 # applies gcc/clang-specific performance and base flags
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(apexui PRIVATE
+    target_compile_options(apex-ui PRIVATE
         ${BASE_FLAGS}
         $<$<CONFIG:Release>:-O3>
     )
@@ -149,7 +149,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     include(CheckIPOSupported)
     check_ipo_supported(RESULT APEXUI_IPO_OK OUTPUT APEXUI_IPO_ERR)
     if(APEXUI_IPO_OK)
-        set_property(TARGET apexui PROPERTY
+        set_property(TARGET apex-ui PROPERTY
             INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     else()
         message(WARNING "IPO/LTO not supported: ${APEXUI_IPO_ERR}")
@@ -158,7 +158,7 @@ endif()
 
 # windows-specific defines to suppress deprecation warnings
 if(WIN32)
-    target_compile_definitions(apexui PRIVATE
+    target_compile_definitions(apex-ui PRIVATE
         _WIN32_WINNT=0x0601
         WIN32_LEAN_AND_MEAN
         _CRT_SECURE_NO_WARNINGS
@@ -169,24 +169,24 @@ endif()
 
 # threading support for background i/o workers
 find_package(Threads REQUIRED)
-target_link_libraries(apexui PUBLIC Threads::Threads)
+target_link_libraries(apex-ui PUBLIC Threads::Threads)
 
 # platform-specific libraries
-target_link_libraries(apexui PUBLIC ${APEXUI_PLATFORM_LIBS})
+target_link_libraries(apex-ui PUBLIC ${APEXUI_PLATFORM_LIBS})
 
 # strips debug symbols in release builds
 if(APEXUI_BUILD_SHARED)
-    add_custom_command(TARGET apexui POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E echo "Stripping $<TARGET_FILE:apexui>"
-        COMMAND ${CMAKE_STRIP} --strip-unneeded $<TARGET_FILE:apexui>
-        COMMENT "Strip $<TARGET_FILE_NAME:apexui>"
+    add_custom_command(TARGET apex-ui POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "Stripping $<TARGET_FILE:apex-ui>"
+        COMMAND ${CMAKE_STRIP} --strip-unneeded $<TARGET_FILE:apex-ui>
+        COMMENT "Strip $<TARGET_FILE_NAME:apex-ui>"
         VERBATIM
     )
 endif()
 
 # install rules: public headers + the library
 include(GNUInstallDirs)
-install(TARGETS apexui
+install(TARGETS apex-ui
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

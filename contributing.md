@@ -96,7 +96,7 @@ Rules to follow:
 ### Naming Conventions
 - **Types:** `PascalCase` (`Widget`, `UiContext`, `UiFont`)
 - **Functions and variables:** `snake_case` (`ui_painter_fill_rect`, `win_w`)
-- **Public API prefix:** `apexui_` (`apexui_init`, `apexui_next_event`)
+- **Public API prefix:** `apex_ui_` (`apex_ui_init`, `apex_ui_next_event`)
 - **Internal module prefix:** `ui_` (`ui_layout`, `ui_state_get`)
 
 ### Commit Messages

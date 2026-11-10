@@ -6,7 +6,7 @@
 #ifndef UI_INTERNAL_H
 #define UI_INTERNAL_H
 
-#include "apexui_value.h"
+#include "apex_ui_value.h"
 #include "ui_theme.h"
 #include <stdint.h>
 #include <stdbool.h>
@@ -449,9 +449,9 @@ typedef struct UiNotification {
 } UiNotification;
 
 // declarative-api node handle
-struct ApexuiNode {
+struct ApexUINode {
     Value descr;                    // owned descriptor table reference; none once released
-    struct ApexuiNode* next_free;   // free-list link while parked for reuse
+    struct ApexUINode* next_free;   // free-list link while parked for reuse
 };
 
 // one block of the per-frame string arena
@@ -483,10 +483,10 @@ typedef struct UiContext {
     Value key_cache[UK_COUNT];  // borrowed interned field names
 
     // declarative-api staging arena
-    struct ApexuiNode** node_list;   // array of live node pointers
+    struct ApexUINode** node_list;   // array of live node pointers
     int                 node_count;  // number of live staged nodes
     int                 node_cap;    // allocated capacity of node_list
-    struct ApexuiNode*  node_free;   // park of released, reusable nodes
+    struct ApexUINode*  node_free;   // park of released, reusable nodes
 
     // hash-guard for skipping the full tree rebuild when the descriptor tree hasn't changed
     uint64_t last_descr_hash;   // recursive hash of the descriptor tree last built
@@ -604,10 +604,10 @@ void dialog_commit(UiContext* ctx);
 void ui_dialog_geom(UiContext* ctx, UiDialogGeom* g);
 
 // creates a new ui context with its own intern table and key cache
-UiContext* apexui_context_create(void);
+UiContext* apex_ui_context_create(void);
 
 // release every ui-owned allocation
-void apexui_context_free(UiContext* ctx);
+void apex_ui_context_free(UiContext* ctx);
 
 // allocate a zeroed widget from the pool
 Widget* ui_widget_alloc(UiContext* ctx);

@@ -131,7 +131,7 @@ void ui_notification_show(UiContext* ctx, const char* key, const char* title,
     n->elapsed     = 0;                                  // no time elapsed yet
     n->anim_t      = 0;                                  // start fully transparent and offset
     n->closing     = false;                              // not fading out
-    n->anim_started_at = apexui_now_seconds();             // anchor the open on wall-clock time
+    n->anim_started_at = apex_ui_now_seconds();             // anchor the open on wall-clock time
     n->show_close  = show_close;                         // honour the close button flag
 
     notif_measure(ctx, n, &n->win_w, &n->win_h);         // resolve the popup size
@@ -171,7 +171,7 @@ void ui_notification_close(UiContext* ctx, int index, bool emit) {
     UiNotification* n = ctx->notifs[index];
     if (n->closing) return;                              // already closing
     n->closing = true;                                   // start the slide-out
-    n->anim_started_at = apexui_now_seconds();             // anchor the close on wall-clock time
+    n->anim_started_at = apex_ui_now_seconds();             // anchor the close on wall-clock time
     if (emit) notif_emit_close(ctx, n);                  // notify the script
 }
 
@@ -225,7 +225,7 @@ void ui_notification_pump(UiContext* ctx) {
 
 // advances slide-in, slide-out and auto-close timers
 void ui_notification_tick(UiContext* ctx, double dt) {
-    double now = apexui_now_seconds();                     // one wall-clock sample for the whole pass
+    double now = apex_ui_now_seconds();                     // one wall-clock sample for the whole pass
     for (int i = 0; i < ctx->notif_count; ) {            // manual index: entries may be removed
         UiNotification* n = ctx->notifs[i];
         bool dirty = false;                              // did anything change this tick?
